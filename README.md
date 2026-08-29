@@ -32,7 +32,8 @@ Cada aula fica na sua própria pasta e gera três ou quatro peças, numeradas em
 | 1 | 15/08/2026 | Overview + primeiro código | [roteiro](aula%201/01-aula-01-roteiro.md) · [slides](aula%201/02-aula-01-slides.html) · [guia de setup](aula%201/03-guia-setup-alunos.md) | ✅ dada |
 | 2 | 22/08/2026 | Tipos, conversão e f-string | [roteiro](aula%202/04-aula-02-roteiro.md) · [slides](aula%202/05-aula-02-slides.html) · [notebook](aula%202/06-aula-02-notebook.ipynb) | ✅ dada |
 | 3 | 29/08/2026 | Condicionais: `if` / `elif` / `else` | [roteiro](aula%203/07-aula-03-roteiro.md) · [slides](aula%203/08-aula-03-slides.html) · [notebook](aula%203/09-aula-03-notebook.ipynb) | ✅ preparada |
-| 4 | 05/09/2026 | Repetição: `for`, `while`, `range` | — | ⬜ a preparar |
+| 4 | 05/09/2026 | Repetição: `for`, `while`, `range` | [roteiro](aula%204/10-aula-04-roteiro.md) · [slides](aula%204/11-aula-04-slides.html) · [notebook](aula%204/12-aula-04-notebook.ipynb) | ✅ preparada |
+| 5 | 12/09/2026 | Listas e strings | — | ⬜ a preparar |
 
 O plano completo do curso — as 24 aulas, os módulos e o porquê de cada decisão — está em **[`00-plano-do-curso.md`](00-plano-do-curso.md)**.
 
@@ -79,7 +80,8 @@ O curso tem um padrão narrativo: **cada aula abre pagando uma pergunta deixada 
 | `"2" + "2"` dá `22` — por quê? | Aula 2 |
 | A sobra negativa da calculadora | Aula 3, abertura |
 | "E se a pessoa digitar `abc`?" | Aula 3, parcialmente (`.isdigit()`) |
-| "E se eu tivesse 200 faixas? Copiaria 200 `elif`?" | **Aula 4, abertura** |
+| "E se eu tivesse 200 faixas? Copiaria 200 `elif`?" | Aula 4, abertura e mão na massa |
+| "O `for` só anda do começo ao fim — e se eu quiser o terceiro? ordenar? o maior?" | **Aula 5** |
 | O `abc` resolvido de verdade, com `try/except` | **Aula 9 — prometido, cumprir** |
 
 ---
@@ -92,6 +94,7 @@ mestresDoXGH/
 ├── aula 1/                   # 01, 02, 03
 ├── aula 2/                   # 04, 05, 06
 ├── aula 3/                   # 07, 08, 09
+├── aula 4/                   # 10, 11, 12
 └── README.md
 ```
 

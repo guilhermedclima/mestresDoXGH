@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 4</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,62ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)} .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex; gap:2.5vw; flex-wrap:wrap; width:100%; align-items:flex-start}
+  .col{flex:1 1 0; min-width:250px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:2.1vh; max-width:none; width:100%}
+  .card{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh}
+  .card .t{font-size:2.2vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.9vh; color:var(--dim); line-height:1.4}
+  .card .m{font-size:2.4vh; font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--fg)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{border-left:4px solid var(--accent); padding-left:2.4vh; font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch}
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .center pre{text-align:left}
+  .tag{display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--bg); background:var(--accent); padding:.4em .9em; border-radius:100px}
+  .tag.ia{background:var(--accent2); color:#fff}
+
+  table{border-collapse:collapse; font-size:2.4vh}
+  td,th{padding:1.1vh 2vh; border-bottom:1px solid var(--border); text-align:left}
+  th{color:var(--accent); font-size:1.9vh; letter-spacing:.06em; text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--accent2); font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 4</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 4 · 5 de setembro</div>
+    <h1>Repetição</h1>
+    <p class="lead dim">Hoje o computador para de te fazer<br>copiar e colar.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Semana passada</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes">Comparação vira <code>bool</code> — e <code>if</code> só sabe olhar bool</li>
+      <li class="yes">Um <code>=</code> manda. Dois <code>==</code> perguntam</li>
+      <li class="yes"><code>if</code> / <code>elif</code> / <code>else</code>, e a ordem importa</li>
+      <li class="yes">Um classificador é um <code>if</code> que ninguém escreveu</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">E ficou <strong>uma pergunta em aberto.</strong> Ela abre a aula de hoje.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="kicker">A pergunta em aberto</div>
+    <h2>"E se eu tivesse <strong>200 faixas</strong>?"</h2>
+<pre class="err" style="font-size:2.2vh"><span class="k">if</span> faixa == <span class="k">0</span>:
+    <span class="k">print</span>(<span class="s">"faixa 0"</span>)
+<span class="k">elif</span> faixa == <span class="k">1</span>:
+    <span class="k">print</span>(<span class="s">"faixa 1"</span>)
+<span class="k">elif</span> faixa == <span class="k">2</span>:
+    <span class="k">print</span>(<span class="s">"faixa 2"</span>)
+<span class="c">...          # e mais 197 vezes</span></pre>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide center">
+    <h1>Olhem essas linhas.<br>O que muda de<br>uma para a outra?</h1>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide center">
+    <p class="lead dim">Só o número.</p>
+    <h1>E quando só o número muda,<br>o computador escreve<br>as linhas sozinho.</h1>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">Duas linhas</div>
+    <h2>Duzentas linhas de saída</h2>
+<pre class="good"><span class="k">for</span> numero <span class="k">in</span> <span class="k">range</span>(<span class="k">200</span>):
+    <span class="k">print</span>(f<span class="s">"faixa {numero}"</span>)</pre>
+    <p class="lead">Eu escrevi <strong>duas</strong>.</p>
+    <p class="dim">Isso é a aula de hoje. Agora vamos destrinchar essas duas linhas.</p>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide center">
+    <div class="kicker">Leia em português</div>
+<pre style="font-size:3vh"><span class="k">for</span>  aluno  <span class="k">in</span>  alunos:</pre>
+    <h2 style="margin-top:1vh">para cada <span class="hl">aluno</span> dentro de <span class="hl">alunos</span>, faça:</h2>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">O primeiro laço</div>
+    <h2>O <code>for</code> na prática</h2>
+<pre>alunos = [<span class="s">"Ana"</span>, <span class="s">"Bruno"</span>, <span class="s">"Carla"</span>]
+
+<span class="k">for</span> aluno <span class="k">in</span> alunos:
+    <span class="k">print</span>(f<span class="s">"Olá, {aluno}!"</span>)</pre>
+    <p class="dim">Aquilo entre colchetes é uma <strong>lista</strong>. Hoje ela é só o saco de coisas que o <code>for</code> percorre — a gente abre o saco na Aula 5.</p>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">Anota — é isso que faz você pesquisar sozinho</div>
+    <h2>Vocabulário de hoje</h2>
+    <table>
+      <tr><td class="mono">laço · loop</td><td>o bloco que repete</td></tr>
+      <tr><td class="mono">iteração</td><td>uma volta do laço</td></tr>
+      <tr><td class="mono">variável do laço</td><td>o nome que muda a cada volta</td></tr>
+      <tr><td class="mono">corpo do laço</td><td>as linhas indentadas</td></tr>
+    </table>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">Pega muita gente</div>
+    <h2><code>aluno</code> não é palavra mágica</h2>
+    <div class="cols">
+      <div class="col">
+<pre><span class="k">for</span> aluno <span class="k">in</span> alunos:
+    <span class="k">print</span>(aluno)</pre>
+      </div>
+      <div class="col">
+<pre><span class="k">for</span> x <span class="k">in</span> alunos:
+    <span class="k">print</span>(x)</pre>
+      </div>
+    </div>
+    <p class="lead">Programas idênticos.</p>
+    <p class="dim">O Python só precisa de <em>algum</em> nome para guardar o item da vez. O nome é seu.</p>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <div class="kicker">A mesma história da Aula 3</div>
+    <h2>O espaço, de novo</h2>
+    <div class="cols">
+      <div class="col">
+        <h3>Dentro</h3>
+<pre><span class="k">for</span> aluno <span class="k">in</span> alunos:
+    <span class="k">print</span>(aluno)
+    <span class="k">print</span>(<span class="s">"--- fim ---"</span>)</pre>
+        <p class="dim" style="font-size:2.1vh"><code>--- fim ---</code> sai <strong>3 vezes</strong></p>
+      </div>
+      <div class="col">
+        <h3>Fora</h3>
+<pre><span class="k">for</span> aluno <span class="k">in</span> alunos:
+    <span class="k">print</span>(aluno)
+<span class="k">print</span>(<span class="s">"--- fim ---"</span>)</pre>
+        <p class="dim" style="font-size:2.1vh"><code>--- fim ---</code> sai <strong>1 vez</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide center">
+    <h1><code>range</code></h1>
+    <p class="lead">Nem sempre você tem uma lista.</p>
+    <p class="lead dim">Às vezes você só quer <strong>repetir N vezes</strong>.</p>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <div class="kicker">Palpite antes de rodar</div>
+    <h2>Quantos números saem daqui?</h2>
+<pre><span class="k">for</span> i <span class="k">in</span> <span class="k">range</span>(<span class="k">5</span>):
+    <span class="k">print</span>(i)</pre>
+<pre class="good" style="margin-top:1vh"><span class="c">0
+1
+2
+3
+4</span></pre>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide center">
+    <span class="tag">As duas surpresas</span>
+    <h2>Começou no <span class="hl">0</span>.<br>E o último é o <span class="hl">4</span>.</h2>
+    <p class="lead">O número dentro do <code>range</code> é a<br><strong>quantidade de voltas</strong> — não o último valor.</p>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide">
+    <div class="kicker">Os três formatos</div>
+    <h2><code>range</code> completo</h2>
+<pre style="font-size:2.3vh"><span class="k">list</span>(<span class="k">range</span>(<span class="k">5</span>))          <span class="c"># [0, 1, 2, 3, 4]</span>
+<span class="k">list</span>(<span class="k">range</span>(<span class="k">1</span>, <span class="k">6</span>))       <span class="c"># [1, 2, 3, 4, 5]</span>
+<span class="k">list</span>(<span class="k">range</span>(<span class="k">0</span>, <span class="k">10</span>, <span class="k">2</span>))   <span class="c"># [0, 2, 4, 6, 8]</span></pre>
+    <p class="dim">Começo · fim (não incluído) · de quanto em quanto</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 1</div>
+    <h2>"Conte de 1 a 5"</h2>
+<pre class="err"><span class="k">for</span> i <span class="k">in</span> <span class="k">range</span>(<span class="k">1</span>, <span class="k">5</span>):
+    <span class="k">print</span>(i)
+
+<span class="c">1
+2
+3
+4</span></pre>
+    <p class="lead">Cadê o <strong>5</strong>?</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.6vh;max-width:36ch">Esse erro tem nome no mundo inteiro:<br><br><strong>off-by-one</strong> — erro de um a menos.</p>
+    <p class="lead" style="margin-top:2vh">Laço rodou uma volta a menos?<br><span class="hl">Olhe o <code>range</code> antes de qualquer coisa.</span></p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide">
+    <div class="kicker">Mais uma pegadinha</div>
+    <h2><code>range</code> sozinho não mostra nada</h2>
+<pre><span class="k">print</span>(<span class="k">range</span>(<span class="k">5</span>))
+
+<span class="c">range(0, 5)</span></pre>
+    <p>Ele é uma <strong>receita</strong> para gerar números, não os números prontos.</p>
+    <p class="dim">Para ver, embrulhe em <code>list()</code>.</p>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide center">
+    <span class="tag">Exercício 1</span>
+    <h1>Tabuada do 7</h1>
+<pre class="good" style="font-size:2.4vh"><span class="c">7 x 1 = 7
+7 x 2 = 14
+...
+7 x 10 = 70</span></pre>
+    <p class="dim">Cuidado com o <code>range</code>.</p>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.</p>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide center">
+    <span class="tag">A ideia mais útil da aula</span>
+    <h1>O acumulador</h1>
+    <p class="lead">Repetir só vale a pena se alguma coisa<br><strong>sobreviver</strong> de uma volta para a outra.</p>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide">
+    <div class="kicker">Somando uma lista</div>
+    <h2>O acumulador na prática</h2>
+<pre>gastos = [<span class="k">300</span>, <span class="k">150</span>, <span class="k">80</span>, <span class="k">420</span>]
+
+total = <span class="k">0</span>
+<span class="k">for</span> gasto <span class="k">in</span> gastos:
+    <span class="hl">total = total + gasto</span>
+
+<span class="k">print</span>(total)   <span class="c"># 950</span></pre>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide center">
+    <div class="kicker">Olhem essa linha</div>
+<pre style="font-size:3.4vh">total = total + gasto</pre>
+    <p class="lead">Em matemática isso é absurdo.</p>
+    <p class="lead">Mas lembram da Aula 3?<br><span class="hl">Um sinal de igual <strong>manda</strong>.</span></p>
+    <p class="dim">"Pegue o total de agora, some o gasto desta volta,<br>e guarde de volta no total."</p>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide">
+    <div class="kicker">Você vai ver isso em código de verdade</div>
+    <h2>O atalho</h2>
+    <div class="cols">
+      <div class="col">
+<pre>total = total + gasto</pre>
+      </div>
+      <div class="col">
+<pre class="good">total += gasto</pre>
+      </div>
+    </div>
+    <p class="lead">Exatamente a mesma coisa.</p>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide">
+    <div class="kicker">As duas aulas se encontram</div>
+    <h2>O <code>if</code> de sábado passado <em>dentro</em> do <code>for</code> de hoje</h2>
+<pre style="font-size:2.3vh">notas = [<span class="k">4</span>, <span class="k">8</span>, <span class="k">6</span>, <span class="k">9</span>, <span class="k">3</span>, <span class="k">7</span>, <span class="k">10</span>, <span class="k">5</span>]
+
+aprovados = <span class="k">0</span>
+<span class="k">for</span> nota <span class="k">in</span> notas:
+    <span class="k">if</span> nota &gt;= <span class="k">7</span>:
+        aprovados += <span class="k">1</span>
+
+<span class="k">print</span>(aprovados)   <span class="c"># 4 de 8</span></pre>
+    <p class="dim">Indentação em <strong>dois níveis</strong>. E <code>len(notas)</code> devolve quantos itens tem.</p>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 2</div>
+    <h2>Um caractere de indentação</h2>
+<pre class="err">total = <span class="k">0</span>
+<span class="k">for</span> gasto <span class="k">in</span> gastos:
+    <span class="e">total = 0</span>        <span class="c"># ← dentro do laço</span>
+    total += gasto
+
+<span class="k">print</span>(total)</pre>
+  </section>
+
+  <!-- 27 -->
+  <section class="slide center">
+    <div class="cols" style="max-width:60vw">
+      <div class="col"><div class="card"><span class="t">Deu</span><span class="m" style="font-size:5vh;color:var(--err)">420</span></div></div>
+      <div class="col"><div class="card"><span class="t">Era pra dar</span><span class="m" style="font-size:5vh;color:var(--ok)">950</span></div></div>
+    </div>
+    <p class="lead" style="margin-top:2vh; color:var(--err)">E nenhum erro vermelho apareceu.</p>
+    <p class="dim">420 é o último gasto — porque o total foi zerado logo antes.</p>
+  </section>
+
+  <!-- 28 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.6vh;max-width:34ch">De novo: o bug mais perigoso é o que <strong>não dá erro</strong>.</p>
+    <p class="lead" style="margin-top:2vh"><span class="hl">Regra:</span> o acumulador nasce <strong>antes</strong> do laço.</p>
+  </section>
+
+  <!-- 29 -->
+  <section class="slide center">
+    <h1><code>while</code></h1>
+    <p class="lead"><code>for</code> é para quando você <strong>sabe</strong> quantas voltas.</p>
+    <p class="lead dim">E quando você não sabe?</p>
+  </section>
+
+  <!-- 30 -->
+  <section class="slide">
+    <div class="kicker">Enquanto a condição for verdadeira, faça</div>
+    <h2>Contagem regressiva</h2>
+<pre>n = <span class="k">5</span>
+<span class="k">while</span> n &gt; <span class="k">0</span>:
+    <span class="k">print</span>(n)
+    n = n - <span class="k">1</span>
+
+<span class="k">print</span>(<span class="s">"Fogo!"</span>)</pre>
+  </section>
+
+  <!-- 31 -->
+  <section class="slide">
+    <div class="kicker">Se faltar uma, quebra</div>
+    <h2>As três partes de todo <code>while</code></h2>
+    <ul>
+      <li class="n1"><strong>Antes:</strong> algo que a condição consiga olhar — <code>n = 5</code></li>
+      <li class="n2"><strong>A condição:</strong> a pergunta de sim ou não — <code>n &gt; 0</code></li>
+      <li class="n3"><strong>Dentro:</strong> algo que <em>muda</em> a condição — <code>n = n - 1</code></li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">A terceira é a que todo mundo esquece.</p>
+  </section>
+
+  <!-- 32 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 3</div>
+    <h2>O loop infinito</h2>
+<pre class="err">n = <span class="k">1</span>
+<span class="k">while</span> n &lt; <span class="k">5</span>:
+    <span class="k">print</span>(n)
+    <span class="c"># esqueci o n = n + 1</span></pre>
+    <p class="lead">Nenhum erro.</p>
+    <p class="dim">O programa está fazendo <strong>exatamente</strong> o que eu mandei: repetir enquanto <code>n &lt; 5</code>. E o <code>n</code> nunca muda.</p>
+  </section>
+
+  <!-- 33 -->
+  <section class="slide center">
+    <div class="big">⏹</div>
+    <h1>Saber parar é habilidade,<br>não acidente</h1>
+    <p class="lead">Vocês vão travar um programa. Todo mundo trava.</p>
+    <p class="lead dim">O botão fica à esquerda da célula, no Colab.</p>
+  </section>
+
+  <!-- 34 -->
+  <section class="slide">
+    <div class="kicker">A saída de emergência</div>
+    <h2><code>break</code></h2>
+<pre style="font-size:2.3vh">total = <span class="k">0</span>
+numero = <span class="k">0</span>
+
+<span class="k">while</span> <span class="k">True</span>:              <span class="c"># "para sempre"</span>
+    numero += <span class="k">1</span>
+    total += numero
+    <span class="k">if</span> total &gt; <span class="k">100</span>:
+        <span class="hl">break</span>
+
+<span class="c"># Passamos de 100 no 14 (total 105)</span></pre>
+  </section>
+
+  <!-- 35 -->
+  <section class="slide">
+    <div class="kicker">Qual dos dois?</div>
+    <h2><code>for</code> ou <code>while</code></h2>
+    <table>
+      <tr><td class="mono">for</td><td>você <strong>sabe</strong> quantas voltas: cada item da lista, 10 da tabuada</td></tr>
+      <tr><td class="mono">while</td><td>você <strong>não sabe</strong>: até acertar, até o erro ficar pequeno</td></tr>
+    </table>
+    <p class="lead" style="margin-top:1vh">Na dúvida, comece pelo <code>for</code>.</p>
+    <p class="dim">Ele não trava.</p>
+  </section>
+
+  <!-- 36 -->
+  <section class="slide">
+    <span class="tag">Mão na massa · parte A</span>
+    <h2>A calculadora, agora para a equipe inteira</h2>
+<pre style="font-size:2.1vh">salarios = [<span class="k">2800</span>, <span class="k">4500</span>, <span class="k">1900</span>, <span class="k">7200</span>, <span class="k">3100</span>, <span class="k">5600</span>]
+
+soma = <span class="k">0</span>
+acima = <span class="k">0</span>
+<span class="k">for</span> salario <span class="k">in</span> salarios:
+    soma += salario
+    <span class="k">if</span> salario &gt; <span class="k">3000</span>:
+        acima += <span class="k">1</span></pre>
+    <p class="dim">Folha R$ 25100 · Média R$ 4183.33 · Acima de 3000: 4 de 6</p>
+    <p class="lead">Atende seis. Ou seis mil. O código é o mesmo.</p>
+  </section>
+
+  <!-- 37 -->
+  <section class="slide center">
+    <span class="tag">Mão na massa · parte B</span>
+    <h1>Os 200 <code>elif</code>,<br>resolvidos</h1>
+    <p class="lead">A pergunta tem <strong>duas</strong> respostas.</p>
+    <p class="lead dim">Qual serve depende das faixas.</p>
+  </section>
+
+  <!-- 38 -->
+  <section class="slide">
+    <div class="kicker">Resposta 1</div>
+    <h2>Se as faixas seguem uma regra,<br>você não decide — você <em>calcula</em></h2>
+<pre class="good" style="font-size:2.3vh"><span class="k">for</span> valor <span class="k">in</span> [<span class="k">850</span>, <span class="k">2400</span>, <span class="k">4200</span>, <span class="k">7300</span>]:
+    faixa = valor <span class="hl">//</span> <span class="k">1000</span>
+    <span class="k">print</span>(f<span class="s">"R$ {valor} → faixa {faixa}"</span>)
+
+<span class="c">R$ 850 → faixa 0
+R$ 2400 → faixa 2
+R$ 4200 → faixa 4
+R$ 7300 → faixa 7</span></pre>
+    <p class="dim"><code>//</code> divide e joga o resto fora. Zero <code>if</code>.</p>
+  </section>
+
+  <!-- 39 -->
+  <section class="slide">
+    <div class="kicker">Resposta 2</div>
+    <h2>Se as faixas são arbitrárias,<br>você guarda a tabela e percorre</h2>
+<pre class="good" style="font-size:2.1vh">limites = [<span class="k">1000</span>, <span class="k">3000</span>, <span class="k">5000</span>, <span class="k">10000</span>]
+
+<span class="k">for</span> valor <span class="k">in</span> [<span class="k">850</span>, <span class="k">2400</span>, <span class="k">4200</span>, <span class="k">7300</span>]:
+    faixa = <span class="s">"até 1000"</span>
+    <span class="k">for</span> limite <span class="k">in</span> limites:
+        <span class="k">if</span> valor &gt;= limite:
+            faixa = f<span class="s">"acima de {limite}"</span></pre>
+    <p class="dim">Um <code>for</code> dentro de outro, e o <code>if</code> lá no fundo.</p>
+  </section>
+
+  <!-- 40 -->
+  <section class="slide center">
+    <h1>Para ter 200 faixas,<br>a <span class="hl">lista</span> cresce.</h1>
+    <h1 style="color:var(--accent)">O código não muda<br>uma linha.</h1>
+    <p class="lead dim" style="margin-top:2vh">É a diferença entre um programa que você <strong>escreve</strong><br>e um que você <strong>alimenta</strong>.</p>
+  </section>
+
+  <!-- 41 -->
+  <section class="slide center">
+    <span class="tag ia">💊 Pílula de IA</span>
+    <h1>Treinar é repetir</h1>
+    <p class="lead dim">Guardem a ideia de dois slides atrás.<br>Ela volta agora.</p>
+  </section>
+
+  <!-- 42 -->
+  <section class="slide">
+    <div class="kicker">Etapa 1</div>
+    <h2>Horas estudadas → nota</h2>
+    <table>
+      <tr><th>Horas</th><td class="mono">1</td><td class="mono">2</td><td class="mono">3</td><td class="mono">4</td><td class="mono">5</td><td class="mono">6</td></tr>
+      <tr><th>Nota</th><td class="mono">2</td><td class="mono">4</td><td class="mono">5</td><td class="mono">7</td><td class="mono">8</td><td class="mono">10</td></tr>
+    </table>
+<pre style="margin-top:1vh">nota = <span class="hl">peso</span> × horas</pre>
+    <p class="lead">Falta <strong>um número</strong>: o peso.</p>
+  </section>
+
+  <!-- 43 -->
+  <section class="slide">
+    <div class="kicker">Etapa 2 · um for com acumulador</div>
+    <h2>O erro é só uma conta</h2>
+<pre style="font-size:2.4vh"><span class="c">peso 0.0 → erro  258.00
+peso 0.5 → erro  127.75
+peso 1.0 → erro   43.00
+peso 2.0 → erro   10.00
+peso 3.0 → erro  159.00</span></pre>
+    <p>O erro <strong>cai</strong>... e volta a <strong>subir</strong>.</p>
+    <p class="lead">Existe um peso melhor que todos, entre 1 e 3.<br><span class="hl">Mas onde, exatamente?</span></p>
+  </section>
+
+  <!-- 44 -->
+  <section class="slide center">
+    <p class="lead">Chutando na mão dá — com <strong>um</strong> número.</p>
+    <h1>Um modelo de verdade<br>tem milhões.</h1>
+    <p class="lead dim">Ninguém chuta milhões de números.</p>
+  </section>
+
+  <!-- 45 -->
+  <section class="slide">
+    <div class="kicker">Etapa 3</div>
+    <h2>O laço que aprende sozinho</h2>
+<pre style="font-size:2.1vh">peso = <span class="k">0.0</span>
+taxa = <span class="k">0.001</span>
+
+<span class="k">for</span> passo <span class="k">in</span> <span class="k">range</span>(<span class="k">50</span>):
+    ajuste = <span class="k">0</span>
+    <span class="k">for</span> i <span class="k">in</span> <span class="k">range</span>(<span class="k">len</span>(horas)):
+        previsto = peso * horas[i]
+        ajuste += <span class="k">2</span> * (previsto - notas[i]) * horas[i]
+
+    <span class="hl">peso = peso - taxa * ajuste</span></pre>
+    <p class="dim">Começa em qualquer lugar, olha para que lado o erro diminui,<br>anda <strong>um passinho</strong> — e repete.</p>
+  </section>
+
+  <!-- 46 -->
+  <section class="slide">
+    <div class="kicker">Rodando</div>
+    <h2>O erro caindo</h2>
+<pre class="good" style="font-size:2.3vh"><span class="c">passo  0 | peso 0.306 | erro  172.88
+passo 10 | peso 1.497 | erro    3.86
+passo 20 | peso 1.657 | erro    0.81
+passo 30 | peso 1.678 | erro    0.76
+passo 49 | peso 1.681 | erro    <span class="hl">0.76</span></span></pre>
+    <p class="lead">Erro <strong>258</strong> no começo. <strong>0.76</strong> no fim.</p>
+    <p class="lead" style="color:var(--accent)">E ninguém escreveu o 1.681.</p>
+  </section>
+
+  <!-- 47 -->
+  <section class="slide center">
+    <h1>Olhem o que<br>esse código <em>é</em></h1>
+    <ul style="margin-top:1vh">
+      <li class="yes">Um <code>for</code> com <code>range</code></li>
+      <li class="yes">Um acumulador — <code>ajuste += ...</code></li>
+      <li class="yes"><code>peso = peso - alguma coisa</code></li>
+    </ul>
+    <p class="lead" style="margin-top:2vh"><span class="hl">Vocês aprenderam as três coisas hoje de manhã.</span></p>
+  </section>
+
+  <!-- 48 -->
+  <section class="slide">
+    <div class="kicker">Etapa 4 · 💥 o passo grande demais</div>
+    <h2><code>taxa = 0.02</code></h2>
+<pre class="err" style="font-size:2.1vh"><span class="c">passo 0 | peso     6.12 | erro          1793.63
+passo 3 | peso   -79.99 | erro        606978.67
+passo 7 | peso -3965.49 | erro   1432202077.83</span></pre>
+    <p class="lead">De 258 para mais de <strong>um bilhão</strong> em oito voltas.</p>
+    <p class="dim">O passo foi tão grande que ele passou do ponto, caiu do outro lado mais longe ainda, e da próxima vez passou mais ainda.</p>
+  </section>
+
+  <!-- 49 -->
+  <section class="slide center">
+    <span class="tag ia">O botão mais importante de quem treina modelo</span>
+    <h1>Taxa de aprendizado</h1>
+    <p class="lead">Pequena demais: demora uma eternidade.</p>
+    <p class="lead">Grande demais: <strong>nunca chega</strong>.</p>
+    <p class="dim" style="margin-top:1.5vh">Quando vocês lerem que "o treino divergiu",<br>é exatamente aquela célula.</p>
+  </section>
+
+  <!-- 50 -->
+  <section class="slide center">
+    <div class="kicker">Etapa 5</div>
+    <h2>Esse laço rodou <span class="hl">50 vezes</span><br>ajustando <span class="hl">1 número</span>.</h2>
+    <h2 style="margin-top:1.5vh">Treinar um LLM é <strong>o mesmo laço</strong>,<br>bilhões de vezes,<br>ajustando bilhões de números.</h2>
+    <p class="dim" style="margin-top:1.5vh">A conta do "para que lado empurrar" fica mais complicada.<br>Na faculdade chama <strong>gradiente descendente</strong>.</p>
+  </section>
+
+  <!-- 51 -->
+  <section class="slide">
+    <div class="kicker">Guardem estas três</div>
+    <h2>O que fica da pílula de hoje</h2>
+    <ul>
+      <li class="n1"><strong>Treinar não é mágica.</strong> É um <code>for</code> que chuta, mede o erro e corrige.</li>
+      <li class="n2"><strong>O modelo não sabe a resposta</strong> — ele erra de propósito e ajusta. Milhões de vezes.</li>
+      <li class="n3"><strong>Ninguém escreveu o 1.681.</strong> Igual à semana passada: os dados escreveram.</li>
+    </ul>
+  </section>
+
+  <!-- 52 -->
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><strong>Tabuada com escolha:</strong> pergunta o número e imprime a tabuada dele</li>
+      <li class="n2"><strong>Jogo de adivinhação:</strong> sorteia de 1 a 100, diz "maior" ou "menor", conta as tentativas</li>
+      <li class="n3"><strong>Contador de spam:</strong> pegue o <code>eh_spam</code> da Aula 3 e conte quantas mensagens ele marca</li>
+      <li><strong>Desafio:</strong> some os pares de 1 a 100 sem escrever nenhum número além do 1 e do 100</li>
+    </ul>
+  </section>
+
+  <!-- 53 -->
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h2>Vocês usaram <strong>lista</strong> a aula inteira<br>e eu nunca expliquei o que ela é.</h2>
+    <p class="lead">O <code>for</code> só sabe andar do começo ao fim, um por um.</p>
+    <p class="lead dim">E se eu quiser pegar <strong>só o terceiro</strong> aluno?<br>Acrescentar um no meio? Ordenar os salários?<br>Descobrir o <strong>maior</strong> deles?</p>
+  </section>
+
+  <!-- 54 -->
+  <section class="slide center">
+    <h1>Semana passada os programas<br>começaram a <span class="hl">decidir</span>.</h1>
+    <h1>Hoje eles começaram a <span class="hl">repetir</span>.</h1>
+    <p class="lead dim" style="margin-top:2vh">Com essas duas coisas vocês já escrevem quase<br>qualquer programa pequeno que existe.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
