@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 3</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,62ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)} .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex; gap:2.5vw; flex-wrap:wrap; width:100%; align-items:flex-start}
+  .col{flex:1 1 0; min-width:250px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:2.1vh; max-width:none; width:100%}
+  .card{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh}
+  .card .t{font-size:2.2vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.9vh; color:var(--dim); line-height:1.4}
+  .card .m{font-size:2.4vh; font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--fg)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{border-left:4px solid var(--accent); padding-left:2.4vh; font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch}
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .center pre{text-align:left}
+  .tag{display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--bg); background:var(--accent); padding:.4em .9em; border-radius:100px}
+  .tag.ia{background:var(--accent2); color:#fff}
+
+  table{border-collapse:collapse; font-size:2.4vh}
+  td,th{padding:1.1vh 2vh; border-bottom:1px solid var(--border); text-align:left}
+  th{color:var(--accent); font-size:1.9vh; letter-spacing:.06em; text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--accent2); font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 3</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 3 · 29 de agosto</div>
+    <h1>Condicionais</h1>
+    <p class="lead dim">Hoje o programa começa a decidir sozinho.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Semana passada</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes"><code>input()</code> sempre devolve texto</li>
+      <li class="yes">Quatro tipos: <code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code></li>
+      <li class="yes"><code>type()</code> é a ferramenta de investigação</li>
+      <li class="yes">f-string virou o padrão da turma</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">E ficaram <strong>duas perguntas em aberto.</strong> As duas são pagas hoje.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="kicker">Pergunta em aberto nº 1</div>
+    <h2>Lembram desse desafio?</h2>
+<pre class="err">Sobra R$ -300.00</pre>
+    <p class="lead">Eu falei que faltava uma ferramenta.</p>
+    <p class="lead">Faltava mesmo. Ela chegou hoje.</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="kicker">Do português para o código</div>
+    <h2>"Se sobrar for negativo, escrever outra coisa"</h2>
+<pre class="good"><span class="k">if</span> sobra &lt; <span class="k">0</span>:
+    <span class="k">print</span>(<span class="s">"Cuidado: você está gastando mais do que ganha!"</span>)
+<span class="k">else</span>:
+    <span class="k">print</span>(f<span class="s">"Sobra R$ {sobra:.2f}."</span>)</pre>
+    <p class="lead">É a mesma frase. Só mudou de idioma.</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide center">
+    <h1>Antes de decidir,<br>uma pergunta</h1>
+    <p class="lead">O computador precisa de uma pergunta<br>com resposta <strong>sim ou não</strong>.</p>
+    <p class="lead dim">Em Python essa resposta tem um tipo:<br>o <code>bool</code> que vocês viram semana passada.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">Repare no que sai</div>
+    <h2>Comparação vira <code>bool</code></h2>
+<pre><span class="k">print</span>(<span class="k">10</span> &gt; <span class="k">5</span>)      <span class="c"># True</span>
+<span class="k">print</span>(<span class="k">10</span> &lt; <span class="k">5</span>)      <span class="c"># False</span>
+<span class="k">print</span>(<span class="k">10</span> == <span class="k">10</span>)    <span class="c"># True</span></pre>
+    <p>Não imprimiu <code>10</code> nem <code>5</code>. Imprimiu <strong>True</strong> e <strong>False</strong>.</p>
+    <p class="dim">E é esse bool que o <code>if</code> vai olhar. Só isso ele sabe fazer.</p>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="kicker">Ferramentas</div>
+    <h2>Os seis comparadores</h2>
+    <table>
+      <tr><td class="mono">&gt;</td><td>é maior que?</td><td class="mono">&lt;=</td><td>é menor ou igual?</td></tr>
+      <tr><td class="mono">&lt;</td><td>é menor que?</td><td class="mono">==</td><td>é igual?</td></tr>
+      <tr><td class="mono">&gt;=</td><td>é maior ou igual?</td><td class="mono">!=</td><td>é diferente?</td></tr>
+    </table>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide center">
+    <span class="tag">Pega absolutamente todo mundo</span>
+    <h1><code>=</code> &nbsp;vs&nbsp; <code>==</code></h1>
+    <div class="cols" style="max-width:70vw">
+      <div class="col">
+        <div class="card"><span class="t">= (um)</span><span class="m">idade = 18</span><span class="d">GUARDA um valor na variável</span></div>
+      </div>
+      <div class="col">
+        <div class="card"><span class="t">== (dois)</span><span class="m">idade == 18</span><span class="d">PERGUNTA se são iguais</span></div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:1vh">Um igual <strong>manda</strong>. Dois iguais <strong>perguntam</strong>.</p>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">Quando errar (e você vai)</div>
+    <h2>O erro que aparece</h2>
+<pre class="err"><span class="k">if</span> idade <span class="e">=</span> <span class="k">18</span>:
+
+<span class="e">SyntaxError</span>: invalid syntax</pre>
+    <p class="quote" style="font-size:2.9vh;margin-top:1vh">Viu <code>SyntaxError</code> numa linha de <code>if</code>?<br>Procure o igual solitário antes de qualquer outra coisa.</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">Também funciona com texto</div>
+    <h2>E maiúscula importa</h2>
+<pre><span class="k">print</span>(<span class="s">"banana"</span> == <span class="s">"banana"</span>)   <span class="c"># True</span>
+<span class="k">print</span>(<span class="s">"Banana"</span> == <span class="s">"banana"</span>)   <span class="c"># False</span></pre>
+    <p class="dim">Para o computador, <code>B</code> e <code>b</code> são caracteres diferentes.<br>Guardem isso — vai dar dor de cabeça em algum momento.</p>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <div class="kicker">O básico</div>
+    <h2>Só o <code>if</code></h2>
+<pre>idade = <span class="k">20</span>
+
+<span class="k">if</span> idade &gt;= <span class="k">18</span>:
+    <span class="k">print</span>(<span class="s">"Pode dirigir"</span>)</pre>
+    <ul>
+      <li>Os <strong>dois pontos</strong> <code>:</code> no fim da linha</li>
+      <li>O <strong>espaço</strong> na linha de baixo — é ele que diz o que está <em>dentro</em></li>
+    </ul>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="kicker">Os dois com idade = 15</div>
+    <h2>O espaço não é enfeite</h2>
+    <div class="cols">
+      <div class="col">
+        <h3>Dentro</h3>
+<pre><span class="k">if</span> idade &gt;= <span class="k">18</span>:
+    <span class="k">print</span>(<span class="s">"Pode dirigir"</span>)
+    <span class="k">print</span>(<span class="s">"Boa viagem"</span>)</pre>
+        <p class="dim" style="font-size:2.1vh">Saída: <strong>nada</strong></p>
+      </div>
+      <div class="col">
+        <h3>Fora</h3>
+<pre><span class="k">if</span> idade &gt;= <span class="k">18</span>:
+    <span class="k">print</span>(<span class="s">"Pode dirigir"</span>)
+<span class="k">print</span>(<span class="s">"Boa viagem"</span>)</pre>
+        <p class="dim" style="font-size:2.1vh">Saída: <strong>Boa viagem</strong></p>
+      </div>
+    </div>
+    <p class="dim">Quatro espaços são a única diferença entre esses dois programas.</p>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <div class="kicker">O caso contrário</div>
+    <h2><code>else</code></h2>
+<pre><span class="k">if</span> idade &gt;= <span class="k">18</span>:
+    <span class="k">print</span>(<span class="s">"Pode dirigir"</span>)
+<span class="k">else</span>:
+    <span class="k">print</span>(<span class="s">"Ainda não pode"</span>)</pre>
+    <p><code>else</code> não leva condição.</p>
+    <p class="dim">Ele é <strong>tudo que sobrou</strong>.</p>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide">
+    <div class="kicker">Mais de duas respostas</div>
+    <h2><code>elif</code></h2>
+<pre>idade = <span class="k">15</span>
+
+<span class="k">if</span> idade &lt; <span class="k">12</span>:
+    <span class="k">print</span>(<span class="s">"Criança"</span>)
+<span class="k">elif</span> idade &lt; <span class="k">18</span>:
+    <span class="k">print</span>(<span class="s">"Adolescente"</span>)
+<span class="k">else</span>:
+    <span class="k">print</span>(<span class="s">"Adulto"</span>)</pre>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide center">
+    <div class="kicker">O detalhe que evita horas de bug</div>
+    <h1>Ele para no<br>primeiro <code>True</code></h1>
+    <p class="lead">O Python lê de cima para baixo e <strong>não testa o resto</strong>.</p>
+    <p class="lead dim">Por isso a segunda linha pode ser só <code>idade &lt; 18</code>:<br>se chegou ali, já é garantido que não é menor que 12.</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <div class="kicker">💥 Agora olhem isso</div>
+    <h2>Uma criança de 5 anos</h2>
+<pre class="err">idade = <span class="k">5</span>
+
+<span class="k">if</span> idade &lt; <span class="k">18</span>:
+    <span class="k">print</span>(<span class="s">"Adolescente"</span>)
+<span class="k">elif</span> idade &lt; <span class="k">12</span>:
+    <span class="k">print</span>(<span class="s">"Criança"</span>)   <span class="c"># nunca acontece</span></pre>
+    <p class="lead">Saiu <strong>Adolescente</strong>.</p>
+    <p class="lead" style="color:var(--err)">E nenhum erro vermelho apareceu.</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.8vh;max-width:34ch">O bug mais perigoso que existe é o que não dá erro.<br><br>O programa roda feliz e responde errado.</p>
+    <p class="lead" style="margin-top:2vh"><span class="hl">Regra:</span> do mais específico para o mais geral.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.</p>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide">
+    <div class="kicker">E se eu precisar de duas coisas?</div>
+    <h2><code>and</code>, <code>or</code>, <code>not</code></h2>
+<pre>idade = <span class="k">25</span>
+tem_habilitacao = <span class="k">True</span>
+
+<span class="k">if</span> idade &gt;= <span class="k">18</span> <span class="k">and</span> tem_habilitacao:
+    <span class="k">print</span>(<span class="s">"Pode dirigir"</span>)</pre>
+    <div class="grid" style="margin-top:1vh">
+      <div class="card"><span class="t">and</span><span class="d">as DUAS verdadeiras</span></div>
+      <div class="card"><span class="t">or</span><span class="d">PELO MENOS UMA verdadeira</span></div>
+      <div class="card"><span class="t">not</span><span class="d">inverte</span></div>
+    </div>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide">
+    <div class="kicker">Na cara dura</div>
+    <h2>Rodem e confiram</h2>
+<pre><span class="k">True</span> <span class="k">and</span> <span class="k">True</span>     <span class="c">→ True</span>
+<span class="k">True</span> <span class="k">and</span> <span class="k">False</span>    <span class="c">→ False</span>
+<span class="k">True</span> <span class="k">or</span> <span class="k">False</span>     <span class="c">→ True</span>
+<span class="k">False</span> <span class="k">or</span> <span class="k">False</span>    <span class="c">→ False</span>
+<span class="k">not</span> <span class="k">True</span>          <span class="c">→ False</span></pre>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide">
+    <div class="kicker">Dica que vale ouro</div>
+    <h2>Não pergunte se o verdadeiro é verdadeiro</h2>
+    <div class="cols">
+      <div class="col">
+        <h3 style="color:var(--err)">Redundante</h3>
+<pre class="err"><span class="k">if</span> tem_habilitacao == <span class="k">True</span>:</pre>
+      </div>
+      <div class="col">
+        <h3 style="color:var(--ok)">Direto</h3>
+<pre class="good"><span class="k">if</span> tem_habilitacao:</pre>
+      </div>
+    </div>
+    <p class="dim">Se já é <code>bool</code>, não precisa comparar com <code>True</code>.</p>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide">
+    <div class="kicker">Guardem esse</div>
+    <h2><code>in</code> — está dentro do texto?</h2>
+<pre>mensagem = <span class="s">"promoção imperdível clique aqui"</span>
+
+<span class="k">print</span>(<span class="s">"promoção"</span> <span class="k">in</span> mensagem)   <span class="c"># True</span>
+<span class="k">print</span>(<span class="s">"almoço"</span> <span class="k">in</span> mensagem)     <span class="c"># False</span></pre>
+    <p class="dim">Ele volta daqui a pouco, na Pílula de IA.</p>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide center">
+    <span class="tag">Mão na massa · parte A</span>
+    <h1>Calculadora<br>com faixas</h1>
+    <p class="lead">Agora ela responde diferente dependendo da situação:<br>vermelho, apertado, equilibrado ou tranquilo.</p>
+    <p class="dim">Está no notebook. Cuidado com a ordem dos <code>elif</code>.</p>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide">
+    <div class="kicker">Pergunta em aberto nº 2</div>
+    <h2>"E se a pessoa digitar <code>abc</code>?"</h2>
+<pre class="good">texto = <span class="k">input</span>(<span class="s">"Digite um número: "</span>)
+
+<span class="k">if</span> texto.isdigit():
+    numero = <span class="k">int</span>(texto)
+    <span class="k">print</span>(f<span class="s">"O dobro é {numero * 2}"</span>)
+<span class="k">else</span>:
+    <span class="k">print</span>(<span class="s">"Isso não é um número. Tente de novo."</span>)</pre>
+    <p><code>.isdigit()</code> devolve um <strong>bool</strong>. Vocês perguntaram semana passada.</p>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide">
+    <div class="kicker">Mas vamos ser honestos</div>
+    <h2>Resolve o caso comum. Não todos.</h2>
+<pre><span class="s">"42"</span>.isdigit()     <span class="c"># True</span>
+<span class="s">"-5"</span>.isdigit()     <span class="c"># False — mas -5 é número!</span>
+<span class="s">"3.14"</span>.isdigit()   <span class="c"># False — mas 3.14 é número!</span></pre>
+    <p>O jeito completo é <code>try/except</code>, na <strong>aula 9</strong>.</p>
+    <p class="quote" style="font-size:2.8vh;margin-top:1vh">É assim que programar funciona: as perguntas ficam abertas e as ferramentas vão chegando.</p>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide center">
+    <span class="tag ia">💊 Pílula de IA</span>
+    <h1>Um classificador é um <code>if</code><br>que ninguém escreveu</h1>
+    <p class="lead dim">Hoje vocês aprenderam a decidir.<br>Detector de spam decide. Vamos fazer um.</p>
+  </section>
+
+  <!-- 27 -->
+  <section class="slide">
+    <div class="kicker">Etapa 1</div>
+    <h2>Vocês já sabem fazer isso</h2>
+<pre style="font-size:2.3vh"><span class="k">def</span> eh_spam(mensagem):
+    suspeitas = [<span class="s">"promocao"</span>, <span class="s">"gratis"</span>, <span class="s">"clique"</span>, <span class="s">"premio"</span>]
+    <span class="k">for</span> palavra <span class="k">in</span> suspeitas:
+        <span class="hl">if palavra in mensagem:</span>
+            <span class="k">return</span> <span class="k">True</span>
+    <span class="k">return</span> <span class="k">False</span></pre>
+    <p class="dim"><code>def</code> e <code>for</code> são das aulas 6 e 4. Olhem só o <code>if</code> no meio — <strong>ele é o classificador inteiro</strong>.</p>
+  </section>
+
+  <!-- 28 -->
+  <section class="slide">
+    <div class="kicker">Etapa 2</div>
+    <h2>Agora quebrem o próprio classificador</h2>
+<pre class="err">eh_spam(<span class="s">"o curso e gratis para os alunos"</span>)
+
+<span class="c">→</span> <span class="e">True</span>  ❌</pre>
+    <p class="lead">Uma mensagem honesta virou spam.</p>
+  </section>
+
+  <!-- 29 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.6vh;max-width:34ch">Você adiciona uma exceção.<br><br>Aí quebra outra coisa.<br><br>A lista de regras nunca acaba.</p>
+  </section>
+
+  <!-- 30 -->
+  <section class="slide">
+    <div class="kicker">Etapa 3</div>
+    <h2>E se o computador escrevesse as regras sozinho?</h2>
+<pre>vetor = CountVectorizer()
+X = vetor.fit_transform(mensagens)
+modelo = MultinomialNB().fit(X, rotulos)</pre>
+    <p class="lead">Três linhas. <strong>16 exemplos</strong> marcados como spam ou normal.</p>
+    <p class="lead" style="color:var(--accent)">Zero regras escritas por mim.</p>
+  </section>
+
+  <!-- 31 -->
+  <section class="slide">
+    <div class="kicker">Frases que ele nunca viu</div>
+    <h2>O resultado</h2>
+<pre class="good" style="font-size:2.3vh"><span class="e">spam</span>    (100%)  &lt;- promocao gratis clique aqui
+<span class="s">normal</span>   (88%)  &lt;- vamos almocar amanha
+<span class="e">spam</span>     (99%)  &lt;- clique no link e ganhe dinheiro
+<span class="s">normal</span>   (94%)  &lt;- segue o relatorio em anexo</pre>
+    <p class="dim">Nenhuma regra. Nenhuma lista de palavras suspeitas.<br>Só 16 exemplos com a resposta certa.</p>
+  </section>
+
+  <!-- 32 -->
+  <section class="slide">
+    <div class="kicker">Etapa 4 · não pulem essa</div>
+    <h2>O modelo também erra</h2>
+<pre class="err" style="font-size:2.4vh"><span class="e">spam</span>    (<span class="hl">61%</span>)  &lt;- o curso e gratis para os alunos
+<span class="e">spam</span>    (<span class="hl">55%</span>)  &lt;- voce pode me mandar o link da reuniao</pre>
+    <p>Errou igual à regra manual. <strong>Mas olhem a confiança.</strong></p>
+    <p class="dim">Ele está em cima do muro — e sabe disso.<br>Minha regra dizia <code>True</code> com certeza absoluta.</p>
+  </section>
+
+  <!-- 33 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.4vh;max-width:36ch">Um modelo que sabe que está inseguro<br><br>é mais útil que uma regra<br>convicta e errada.</p>
+    <p class="dim" style="margin-top:1.5vh">Em sistema sério, caso com confiança baixa vai para um humano olhar.</p>
+  </section>
+
+  <!-- 34 -->
+  <section class="slide">
+    <div class="kicker">Etapa 5 · o desfecho</div>
+    <h2>Consertado — e reparem <em>como</em></h2>
+<pre class="good" style="font-size:2.3vh"><span class="s">normal</span>  (96%)  &lt;- o curso e gratis para os alunos
+<span class="s">normal</span>  (97%)  &lt;- voce pode me mandar o link da reuniao
+<span class="e">spam</span>    (96%)  &lt;- promocao gratis clique aqui</pre>
+    <p class="lead">Não escrevi nenhuma regra nova.</p>
+    <p class="lead" style="color:var(--accent)">Dei mais 8 exemplos.</p>
+  </section>
+
+  <!-- 35 -->
+  <section class="slide">
+    <div class="kicker">Guardem estas três</div>
+    <h2>O que fica da pílula de hoje</h2>
+    <ul>
+      <li class="n1"><strong>O <code>if</code> continua lá dentro.</strong> O modelo decide comparando números com limiares — só que <em>você não escreveu os limiares</em>.</li>
+      <li class="n2"><strong>Dado vale mais que código em IA.</strong> Corrigir modelo é conseguir mais exemplo, não escrever mais regra.</li>
+      <li class="n3"><strong>O modelo diz o quanto está inseguro.</strong> Aquele 61% é informação, não defeito.</li>
+    </ul>
+  </section>
+
+  <!-- 36 -->
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><strong>Classificador de nota:</strong> Reprovado / Recuperação / Aprovado <span class="dim">(cuidado com a ordem)</span></li>
+      <li class="n2"><strong>Validador de senha:</strong> forte se tiver 8 caracteres ou mais</li>
+      <li class="n3"><strong>Desafio:</strong> melhore o <code>eh_spam</code> — depois <strong>tente quebrar o seu próprio</strong>. Ache uma mensagem honesta que ele marque como spam.</li>
+      <li>Pra pensar: e se eu tivesse <strong>200 faixas</strong>? Copiaria 200 <code>elif</code>?</li>
+    </ul>
+  </section>
+
+  <!-- 37 -->
+  <section class="slide center">
+    <h1>Até hoje os programas<br>faziam sempre a mesma coisa</h1>
+    <p class="lead">Agora eles reagem.</p>
+    <p class="lead dim">Semana que vem eles vão <strong>repetir</strong> —<br>e vocês param de escrever código na mão.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

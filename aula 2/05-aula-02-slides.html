@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 2</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{
+    font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--accent); font-weight:700;
+  }
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,62ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  pre.out{border-left-color:var(--dim); color:var(--dim)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)}
+
+  .cols{display:flex; gap:2.5vw; flex-wrap:wrap; width:100%}
+  .col{flex:1 1 0; min-width:250px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:2.1vh; max-width:none; width:100%}
+  .card{
+    background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+    padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh;
+  }
+  .card .t{font-size:2.2vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.9vh; color:var(--dim); line-height:1.4}
+  .card .m{font-size:2.4vh; font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--fg)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{
+    border-left:4px solid var(--accent); padding-left:2.4vh;
+    font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch;
+  }
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .center pre{text-align:left}
+  .tag{
+    display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--bg); background:var(--accent);
+    padding:.4em .9em; border-radius:100px;
+  }
+  .tag.ia{background:var(--accent2); color:#fff}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 2</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 2 · 22 de agosto</div>
+    <h1>Tipos e conversão</h1>
+    <p class="lead dim">Por que <code>"2" + "2"</code> dá <code>22</code><br>— e por que isso quebra 90% dos programas de iniciante</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Semana passada</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes">Todo mundo rodou o primeiro programa</li>
+      <li class="yes">Variáveis: caixas com etiqueta</li>
+      <li class="yes">Erro vermelho é endereço, não bronca</li>
+      <li class="yes">O computador é literal — o robô do sanduíche</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">Hoje a gente descobre <strong>por que</strong> a tarefa de casa quebrou.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide center">
+    <span class="tag">A tarefa de casa</span>
+    <h1>Por que deu 22?</h1>
+<pre>a = <span class="k">input</span>(<span class="s">"Primeiro número: "</span>)
+b = <span class="k">input</span>(<span class="s">"Segundo número: "</span>)
+
+<span class="k">print</span>(a + b)</pre>
+    <p class="lead">Digitei <strong>2</strong> e <strong>2</strong>. Apareceu <strong>22</strong>.</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="kicker">A explicação</div>
+    <h2><code>input()</code> sempre devolve <span style="color:var(--accent)">texto</span></h2>
+    <p class="lead">Sempre. Mesmo quando você digita um número.</p>
+    <p>E somar dois textos em Python não soma. <strong>Gruda.</strong></p>
+<pre><span class="k">print</span>(<span class="s">"casa"</span> + <span class="s">"grande"</span>)   <span class="c"># casagrande</span>
+<span class="k">print</span>(<span class="s">"2"</span> + <span class="s">"2"</span>)           <span class="c"># 22</span></pre>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:4vh;max-width:30ch">O computador não se confundiu.<br><br>Ele fez exatamente o que vocês pediram.<br><br>De novo.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">O conserto</div>
+    <h2>Uma palavra resolve</h2>
+<pre class="good">a = <span class="k">int</span>(<span class="k">input</span>(<span class="s">"Primeiro número: "</span>))
+b = <span class="k">int</span>(<span class="k">input</span>(<span class="s">"Segundo número: "</span>))
+
+<span class="k">print</span>(a + b)   <span class="c"># 4 🎉</span></pre>
+    <p><code>int()</code> pega um texto que <em>parece</em> número e transforma em número de verdade.</p>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide center">
+    <h1>A ideia central<br>de hoje</h1>
+    <p class="lead">O computador não guarda só o <strong>valor</strong>.</p>
+    <p class="lead">Ele guarda o valor <strong>e o que aquilo é</strong>.</p>
+    <p class="dim">E o que ele acha que aquilo é muda o que o <code>+</code> faz.</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">O básico do básico</div>
+    <h2>Os quatro tipos</h2>
+    <div class="grid">
+      <div class="card"><span class="t">str</span><span class="m">"Guilherme"</span><span class="d">Texto. Sempre entre aspas.</span></div>
+      <div class="card"><span class="t">int</span><span class="m">30</span><span class="d">Número inteiro.</span></div>
+      <div class="card"><span class="t">float</span><span class="m">1.75</span><span class="d">Número com casa decimal.</span></div>
+      <div class="card"><span class="t">bool</span><span class="m">True / False</span><span class="d">Verdadeiro ou falso. Só isso.</span></div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">Sua ferramenta de investigação</div>
+    <h2><code>type()</code> — na dúvida, pergunte</h2>
+<pre><span class="k">print</span>(<span class="k">type</span>(nome))     <span class="c"># &lt;class 'str'&gt;</span>
+<span class="k">print</span>(<span class="k">type</span>(idade))    <span class="c"># &lt;class 'int'&gt;</span>
+<span class="k">print</span>(<span class="k">type</span>(altura))   <span class="c"># &lt;class 'float'&gt;</span></pre>
+    <p class="quote" style="font-size:2.8vh;margin-top:1vh">Deu erro estranho? Antes de sofrer, roda <code>type()</code>.<br>Metade dos bugs de iniciante é o tipo não ser o que você achava.</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">Pega quase todo mundo</div>
+    <h2>Três detalhes traiçoeiros</h2>
+    <ul>
+      <li class="n1"><code>"30"</code> e <code>30</code> <strong>não são a mesma coisa.</strong> O primeiro é texto que parece número.</li>
+      <li class="n2">O separador decimal é <strong>ponto</strong>, não vírgula. <code>1,75</code> não é número.</li>
+      <li class="n3"><code>True</code> e <code>False</code> com maiúscula e <strong>sem aspas</strong>. Com aspas viram texto.</li>
+    </ul>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide center">
+    <span class="tag">Sua vez · 5 min</span>
+    <h1>Adivinha o tipo</h1>
+    <p class="lead">No papel, antes de rodar:</p>
+<pre style="font-size:2.4vh"><span class="k">type</span>(<span class="k">42</span>)          <span class="k">type</span>(<span class="s">"42"</span>)
+<span class="k">type</span>(<span class="k">42.0</span>)        <span class="k">type</span>(<span class="s">"42.0"</span>)
+<span class="k">type</span>(<span class="k">False</span>)       <span class="k">type</span>(<span class="s">"3"</span> + <span class="s">"4"</span>)</pre>
+    <p class="dim">Errar aqui é ótimo. Quem erra fixa melhor que quem acerta de sorte.</p>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="kicker">Trocando de tipo</div>
+    <h2>Conversão</h2>
+    <div class="cols">
+      <div class="col">
+<pre><span class="k">int</span>(<span class="s">"42"</span>)     <span class="c"># 42</span>
+<span class="k">float</span>(<span class="s">"3.14"</span>) <span class="c"># 3.14</span>
+<span class="k">str</span>(<span class="k">7</span>)        <span class="c"># "7"</span></pre>
+      </div>
+      <div class="col">
+        <div class="card"><span class="t">int(x)</span><span class="d">vira número inteiro</span></div>
+        <div class="card"><span class="t">float(x)</span><span class="d">vira número decimal</span></div>
+        <div class="card"><span class="t">str(x)</span><span class="d">vira texto</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide center">
+    <div class="kicker">Cuidado com esse</div>
+    <h2><code>int()</code> corta. Não arredonda.</h2>
+<pre style="font-size:3.4vh"><span class="k">int</span>(<span class="k">9.99</span>)   <span class="c">→ 9</span></pre>
+    <p class="lead">Não é 10.</p>
+    <p class="dim">Ele joga fora tudo depois do ponto.<br>É o tipo de detalhe que vira bug silencioso três semanas depois.</p>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide center">
+    <span class="tag">Ritual da casa</span>
+    <h1>Agora quebra<br>de propósito</h1>
+<pre style="font-size:3.4vh"><span class="k">int</span>(<span class="s">"abc"</span>)</pre>
+    <p class="dim">Rodem. Leiam a mensagem inteira antes de falar qualquer coisa.</p>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide">
+    <div class="kicker">Lendo o erro</div>
+    <h2>O que ele está dizendo?</h2>
+<pre class="err"><span class="e">ValueError</span>: invalid literal for int()
+with base 10: 'abc'</pre>
+    <ul>
+      <li><strong><code>ValueError</code></strong> = o <em>valor</em> está errado. Não a escrita do código.</li>
+      <li>E faz todo sentido: não existe jeito de virar <code>"abc"</code> em número.</li>
+    </ul>
+    <p class="dim">Erro que faz sentido é erro fácil de consertar.</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide center">
+    <h1>🤔</h1>
+    <h2>E se a pessoa digitar<br><code>abc</code> no nosso programa?</h2>
+    <p class="lead dim">Guardem a pergunta.<br>A resposta é conteúdo de uma aula lá na frente.</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide">
+    <div class="kicker">Montando texto</div>
+    <h2>Primeiro, o jeito chato</h2>
+<pre><span class="k">print</span>(<span class="s">"Oi, "</span> + nome + <span class="s">"! Você tem "</span> + <span class="k">str</span>(idade) + <span class="s">" anos."</span>)</pre>
+    <p>Conta quantos <code>+</code>. Conta quantos <code>str()</code>.</p>
+    <p class="dim">Agora imagina isso com seis variáveis.</p>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide">
+    <div class="kicker">O jeito bom</div>
+    <h2>f-string</h2>
+<pre class="good"><span class="k">print</span>(f<span class="s">"Oi, {nome}! Você tem {idade} anos."</span>)</pre>
+    <p>O <strong><code>f</code></strong> antes das aspas libera as chaves. O que estiver dentro de <code>{}</code> o Python calcula e coloca ali.</p>
+<pre class="good"><span class="k">print</span>(f<span class="s">"Ano que vem você faz {idade + 1}."</span>)</pre>
+    <p class="dim">Sem <code>+</code>. Sem <code>str()</code>. A partir de hoje é o padrão da turma.</p>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide">
+    <div class="kicker">Bônus útil</div>
+    <h2>Casas decimais</h2>
+<pre>preco = <span class="k">19.9</span>
+
+<span class="k">print</span>(f<span class="s">"{preco}"</span>)        <span class="c"># 19.9</span>
+<span class="k">print</span>(f<span class="s">"R$ {preco:.2f}"</span>)  <span class="c"># R$ 19.90</span></pre>
+    <p><code>:.2f</code> = mostra com <strong>2 casas decimais</strong>.</p>
+    <p class="dim">Sempre que tiver dinheiro na tela, use.</p>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide center">
+    <span class="tag">Mão na massa · 20 min</span>
+    <h1>Calculadora de gastos</h1>
+    <p class="lead">Está no notebook. Rodem, preencham com valores de verdade.</p>
+    <p class="dim">Depois <strong>mudem o código</strong>. É de vocês.</p>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide">
+    <div class="kicker">Terminou antes?</div>
+    <h2>Três desafios</h2>
+    <ul>
+      <li class="n1">Mostrar também quanto sobra <strong>por dia</strong></li>
+      <li class="n2">Incluir o gasto com <strong>transporte</strong></li>
+      <li class="n3">Se a pessoa gastar mais do que ganha, <code>"Sobra R$ -300,00"</code> fica esquisito. O texto deveria ser outro. <strong>Como?</strong></li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">Sentiu que falta uma ferramenta pro nº 3? Sentiu certo. Ela chega sábado que vem.</p>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide center">
+    <span class="tag ia">💊 Pílula de IA</span>
+    <h1>Por que a máquina<br>só entende número</h1>
+    <p class="lead dim">A partir de hoje, todo sábado termina assim:<br>onde o assunto do dia aparece dentro da IA.</p>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide">
+    <div class="kicker">A pergunta</div>
+    <h2>Vocês passaram a aula convertendo texto em número.</h2>
+    <p class="lead">O ChatGPT recebe <strong>texto</strong>.</p>
+    <p class="lead">Mas por dentro, computador só sabe fazer <strong>conta</strong>.</p>
+    <p class="lead" style="color:var(--accent)">Como é que texto vira conta?</p>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide center">
+    <h1 style="color:var(--accent)">Converte.</h1>
+    <p class="lead">Exatamente como vocês fizeram hoje às 10h45.</p>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide">
+    <div class="kicker">Passo 1</div>
+    <h2>Toda letra já é um número por baixo</h2>
+<pre><span class="k">print</span>(<span class="k">ord</span>(<span class="s">"a"</span>))   <span class="c"># 97</span>
+<span class="k">print</span>(<span class="k">ord</span>(<span class="s">"b"</span>))   <span class="c"># 98</span>
+<span class="k">print</span>(<span class="k">ord</span>(<span class="s">"A"</span>))   <span class="c"># 65</span></pre>
+    <p>Isso ainda <strong>não é IA</strong> — é só a tabela de caracteres, existe desde sempre.</p>
+    <p class="dim">Mas mostra que a ponte texto → número é concreta.</p>
+  </section>
+
+  <!-- 27 -->
+  <section class="slide">
+    <div class="kicker">Passo 2</div>
+    <h2>Frase entra. Lista de números sai.</h2>
+<pre>frase = <span class="s">"o gato subiu no telhado"</span>
+pedacos = frase.split()
+
+<span class="c"># ['o', 'gato', 'subiu', 'no', 'telhado']</span>
+<span class="c"># →  [1, 2, 3, 4, 5]</span></pre>
+    <p class="dim">Não se preocupem com o código — parte é da aula 5.<br>Olhem só o que entrou e o que saiu.</p>
+  </section>
+
+  <!-- 28 -->
+  <section class="slide">
+    <div class="kicker">Guardem estas três</div>
+    <h2>O que sustenta o resto do curso</h2>
+    <ul>
+      <li class="n1"><strong>Todo modelo de IA só come número.</strong> Texto, imagem e som viram número antes de entrar. Sem exceção.</li>
+      <li class="n2"><strong>Isso tem nome: tokenização.</strong> Vocês fazem de verdade na aula 5.</li>
+      <li class="n3"><strong>Num modelo real o número não é 1, 2, 3.</strong> É uma lista de centenas de números que carrega <em>significado</em>, aprendido sozinho lendo bilhões de frases. Chama <strong>embedding</strong>.</li>
+    </ul>
+  </section>
+
+  <!-- 29 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.8vh;max-width:32ch">Quando alguém disser que IA é mágica:<br><br>é conta.<br><br>Muita conta, com números que alguém precisou converter antes.</p>
+  </section>
+
+  <!-- 30 -->
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1">Terminar a calculadora de gastos e mandar print no grupo</li>
+      <li class="n2"><strong>Conversor de temperatura:</strong> pergunta em Celsius, mostra em Fahrenheit<br>
+        <span class="dim" style="font-size:2.1vh"><code>F = C * 9/5 + 32</code> — com f-string e uma casa decimal</span></li>
+      <li class="n3"><strong>Desafio:</strong> pergunta nome e ano de nascimento → <code>"Fulano, você faz 30 anos em 2026"</code></li>
+      <li>Pra pensar: e se digitarem <code>abc</code>? Tragam ideias.</li>
+    </ul>
+  </section>
+
+  <!-- 31 -->
+  <section class="slide center">
+    <h1>Hoje foi a aula<br>mais chata do curso</h1>
+    <p class="lead">E a mais importante. Tipo é o que quebra quase tudo no começo.</p>
+    <p class="lead dim">Sábado que vem o programa começa a <strong>decidir</strong> sozinho.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

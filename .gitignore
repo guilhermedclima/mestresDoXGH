@@ -1,0 +1,64 @@
+# ---------------------------------------------------------------
+# Mestres do XGH — arquivos que NÃO vão para o repositório
+# ---------------------------------------------------------------
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Ambientes virtuais (quando a instalação local entrar, na Aula 8)
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# --- Jupyter / Colab ---
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+.virtual_documents/
+# Notebooks NÃO são ignorados — eles são o material da aula.
+
+# --- VS Code ---
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.code-workspace
+
+# --- Windows ---
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# --- macOS / Linux (caso um aluno clone) ---
+.DS_Store
+.AppleDouble
+*~
+.directory
+.Trash-*
+
+# --- Segredos: chaves de API entram no Módulo 4 (aulas 18-19) ---
+.env
+.env.*
+!.env.example
+*.key
+secrets.json
+credentials.json
+
+# --- Dados pesados e temporários ---
+*.log
+tmp/
+temp/
+*.tmp

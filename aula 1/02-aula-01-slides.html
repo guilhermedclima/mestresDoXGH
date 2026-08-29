@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 1</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{
+    font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--accent); font-weight:700;
+  }
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,60ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)}       /* string */
+  .k{color:var(--accent2)}  /* keyword */
+  .c{color:var(--dim)}      /* comment */
+  .e{color:var(--err)}
+
+  .cols{display:flex; gap:2vw; flex-wrap:wrap}
+  .col{flex:1 1 0; min-width:230px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:1.9vh; max-width:none; width:100%}
+  .card{
+    background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+    padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh;
+  }
+  .card .t{font-size:2.1vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.85vh; color:var(--dim); line-height:1.4}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{
+    border-left:4px solid var(--accent); padding-left:2.4vh;
+    font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch;
+  }
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .tag{
+    display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--bg); background:var(--accent);
+    padding:.4em .9em; border-radius:100px;
+  }
+
+  /* chrome */
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 1</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 1 · 15 de agosto</div>
+    <h1>Mestres do XGH</h1>
+    <p class="lead dim">Programação do zero.<br>Hoje: o que é isso, e o seu primeiro programa.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Ao final de hoje</div>
+    <h2>Você sai daqui tendo:</h2>
+    <ul>
+      <li class="yes">Escrito e rodado um programa <strong>seu</strong></li>
+      <li class="yes">Visto um erro, lido a mensagem e consertado sozinho</li>
+      <li class="yes">Entendido o mapa do que vem pela frente</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">Não é objetivo hoje: decorar sintaxe. É objetivo: querer voltar sábado que vem.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="kicker">Antes de tudo</div>
+    <h2>Quem eu sou</h2>
+    <ul>
+      <li>Programo em .NET e JavaScript</li>
+      <li>Estudando Engenharia de IA Aplicada</li>
+      <li>Já perdi um dia inteiro por causa de um caractere errado</li>
+    </ul>
+    <p class="quote" style="margin-top:2vh">Ninguém aqui nasceu sabendo. Inclusive eu.</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="kicker">Combinados</div>
+    <h2>As regras do jogo</h2>
+    <ul>
+      <li><strong>Pergunta idiota não existe.</strong> Pergunta não feita vira desistência três aulas depois.</li>
+      <li><strong>Errar em aula é de graça.</strong> É pra errar aqui.</li>
+      <li><strong>Copiou sem entender?</strong> Explica pro vizinho o que a linha faz.</li>
+      <li><strong>Dúvida na semana</strong> vai no grupo. Dúvida guardada apodrece.</li>
+      <li><strong>20 minutos por dia</strong> &gt; 3 horas no domingo.</li>
+    </ul>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide center">
+    <span class="tag">Dinâmica</span>
+    <h1>Programe um humano</h1>
+    <p class="lead">Eu sou o robô.<br>Vocês me dão as instruções.</p>
+    <p class="dim">Regra: eu faço <strong>exatamente</strong> o que vocês disserem.<br>Nunca o que vocês quiseram dizer.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">O que acabou de acontecer</div>
+    <h2>Programar é tradução</h2>
+    <p class="lead">Vocês sabiam exatamente o que queriam. O robô é que não adivinha.</p>
+    <p>Programar é transformar uma intenção <strong>óbvia para você</strong> numa sequência de passos tão explícita que uma máquina obediente e burra consegue seguir.</p>
+    <p class="dim">A dificuldade quase nunca é matemática. É essa tradução.</p>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="kicker">Por baixo do capô</div>
+    <h2>O que acontece quando você escreve código</h2>
+    <div class="grid">
+      <div class="card"><span class="t">1. Você escreve</span><span class="d">Texto que um humano lê. Isso é o código.</span></div>
+      <div class="card"><span class="t">2. Alguém traduz</span><span class="d">Um programa converte seu texto para o que a máquina entende.</span></div>
+      <div class="card"><span class="t">3. A máquina executa</span><span class="d">O processador faz, passo a passo, sem pensar.</span></div>
+    </div>
+    <p class="dim">Só isso. Não tem mágica em nenhuma das três etapas.</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">Onde isso está</div>
+    <h2>Onde roda código?</h2>
+    <div class="grid">
+      <div class="card"><span class="t">Sites e apps</span><span class="d">O óbvio</span></div>
+      <div class="card"><span class="t">Maquininha de cartão</span><span class="d">Menos óbvio</span></div>
+      <div class="card"><span class="t">Semáforo, elevador</span><span class="d">Software em tudo</span></div>
+      <div class="card"><span class="t">Seu carro</span><span class="d">Milhões de linhas</span></div>
+      <div class="card"><span class="t">A geladeira nova</span><span class="d">Sério</span></div>
+      <div class="card"><span class="t">O vídeo que te recomendaram ontem</span><span class="d">Alguém programou aquela escolha</span></div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">A pergunta que todo mundo faz</div>
+    <h2>Por que existem tantas linguagens?</h2>
+    <p class="lead">Pelo mesmo motivo que existem várias ferramentas na caixa.</p>
+    <p>Martelo não é melhor que chave de fenda. Cada linguagem foi criada resolvendo um problema diferente, numa época diferente.</p>
+    <p class="dim">Linguagem é ferramenta, não religião. Quem aprende uma bem, aprende a segunda em semanas.</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">O mesmo programa</div>
+    <h2>"Olá, mundo" em três linguagens</h2>
+    <div class="cols">
+      <div class="col">
+        <h3>C# (.NET)</h3>
+<pre><span class="k">using</span> System;
+
+<span class="k">class</span> Programa {
+  <span class="k">static void</span> Main() {
+    Console.WriteLine(<span class="s">"Olá"</span>);
+  }
+}</pre>
+      </div>
+      <div class="col">
+        <h3>JavaScript</h3>
+<pre>console.log(<span class="s">"Olá"</span>);
+
+<span class="c">// + um arquivo HTML
+// pra rodar no navegador</span></pre>
+      </div>
+      <div class="col">
+        <h3>Python</h3>
+<pre><span class="k">print</span>(<span class="s">"Olá"</span>)</pre>
+        <p class="dim" style="font-size:1.9vh">É isso. O arquivo inteiro.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <div class="kicker">A escolha</div>
+    <h2>Vamos usar Python</h2>
+    <ul>
+      <li><strong>Menos cerimônia.</strong> Você escreve o que importa e nada além disso.</li>
+      <li><strong>Erros legíveis.</strong> Ele te diz a linha e o problema.</li>
+      <li><strong>Zero instalação hoje.</strong> Roda no navegador.</li>
+      <li><strong>É a língua da IA.</strong> Quando a gente chegar lá, já vamos estar em casa.</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">Eu trabalho com .NET e JavaScript. Escolhi Python porque é o caminho mais curto entre a sua ideia e o resultado na tela.</p>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="kicker">Já que todo mundo pergunta</div>
+    <h2>Onde a IA entra nisso</h2>
+    <p class="lead">Software normal segue regras que alguém escreveu.<br>IA aprende padrões a partir de dados.</p>
+    <p>É diferente, é poderoso — e <strong>não é mágica.</strong> A gente vai chegar lá neste curso.</p>
+    <p class="dim">Mas depois do básico. Sem base, usar IA é só apertar botão e torcer — e você não consegue perceber quando ela erra. E ela erra.</p>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.<br>Volta que agora é no teclado.</p>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide center">
+    <span class="tag">Mão na massa</span>
+    <h1>Abra o Colab</h1>
+    <pre style="font-size:3.4vh">colab.research.google.com</pre>
+    <p class="lead">Entre com a conta Google → <strong>Novo notebook</strong></p>
+    <p class="dim">Não instala nada. Funciona em qualquer computador. Até no celular.</p>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide">
+    <div class="kicker">Passo 1</div>
+    <h2>Seu primeiro programa</h2>
+<pre><span class="k">print</span>(<span class="s">"Olá, mundo"</span>)</pre>
+    <p><strong>Shift + Enter</strong> para rodar.</p>
+    <p class="dim">Para muita gente aqui, essa é a primeira vez que um computador faz algo porque <em>você</em> mandou. Vale comemorar.</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <div class="kicker">Passo 2</div>
+    <h2>Variáveis: caixas com etiqueta</h2>
+<pre>nome = <span class="s">"Guilherme"</span>
+idade = <span class="k">30</span>
+
+<span class="k">print</span>(<span class="s">"Meu nome é "</span> + nome)
+<span class="k">print</span>(<span class="s">"Eu tenho "</span> + <span class="k">str</span>(idade) + <span class="s">" anos"</span>)</pre>
+    <p>Você guarda um valor numa caixa, cola uma etiqueta, e depois usa pela etiqueta.</p>
+    <p class="dim">Trocou o que está dentro da caixa? Tudo que usa a etiqueta muda junto.</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide">
+    <div class="kicker">Passo 3</div>
+    <h2>Agora o programa conversa</h2>
+<pre>nome = <span class="k">input</span>(<span class="s">"Qual é o seu nome? "</span>)
+<span class="k">print</span>(<span class="s">"Prazer, "</span> + nome + <span class="s">"! Bem-vindo aos Mestres do XGH."</span>)</pre>
+    <p><code>input</code> para e espera <strong>você</strong> digitar.</p>
+    <p class="dim">Deixou de ser um texto fixo. Virou um programa que reage.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide center">
+    <span class="tag">Sua vez · 10 min</span>
+    <h1>Cartão de apresentação</h1>
+    <p class="lead">Faça um programa que mostra:</p>
+    <ul>
+      <li>Seu nome</li>
+      <li>Sua cidade</li>
+      <li>Uma coisa que você quer conseguir construir</li>
+    </ul>
+    <p class="dim">Travou? Levanta a mão. É pra travar mesmo.</p>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide">
+    <div class="kicker">Passo 4</div>
+    <h2>O programa decide</h2>
+<pre>idade = <span class="k">int</span>(<span class="k">input</span>(<span class="s">"Qual sua idade? "</span>))
+
+<span class="k">if</span> idade &gt;= <span class="k">18</span>:
+    <span class="k">print</span>(<span class="s">"Pode tirar habilitação"</span>)
+<span class="k">else</span>:
+    <span class="k">print</span>(<span class="s">"Ainda não pode"</span>)</pre>
+    <p>Repare em <strong>duas</strong> coisas: os <code>:</code> no fim da linha, e o <strong>espaço</strong> antes do <code>print</code>.</p>
+    <p class="dim">Em Python o espaço não é enfeite. É ele que diz o que está dentro do quê.</p>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide center">
+    <span class="tag">A parte mais importante do dia</span>
+    <h1>Agora quebra<br>de propósito</h1>
+    <p class="lead dim">Apaguem o espaço antes do <code>print</code> e rodem.</p>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide">
+    <div class="kicker">Como ler um erro</div>
+    <h2>Vermelho é endereço, não bronca</h2>
+<pre class="err">  File "&lt;stdin&gt;", line 4
+    print("Pode tirar habilitação")
+    ^
+<span class="e">IndentationError</span>: expected an indented block
+after 'if' statement on line 3</pre>
+    <ul>
+      <li><strong>A última linha</strong> = que tipo de problema é</li>
+      <li><strong>O número</strong> = onde ir olhar</li>
+      <li><strong>O texto</strong> = o que ele esperava e não achou</li>
+    </ul>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:4.2vh;max-width:26ch">Quem aprende a ler erro vira programador.<br><br>Quem entra em pânico e apaga tudo, não.</p>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide">
+    <div class="kicker">O caminho</div>
+    <h2>Para onde a gente vai</h2>
+    <div class="grid">
+      <div class="card"><span class="t">Fundamentos</span><span class="d">Variáveis, decisões, repetição, listas, funções</span></div>
+      <div class="card"><span class="t">Código que sobrevive</span><span class="d">Arquivos, erros, Git e GitHub</span></div>
+      <div class="card"><span class="t">Mundo real</span><span class="d">Bibliotecas, APIs, dados, gráficos</span></div>
+      <div class="card"><span class="t">Interface</span><span class="d">HTML, CSS e seu app publicado</span></div>
+      <div class="card"><span class="t">IA aplicada</span><span class="d">Machine learning, LLMs, projeto final</span></div>
+      <div class="card"><span class="t">Próximo nível</span><span class="d">Objetos, boas práticas, portfólio</span></div>
+    </div>
+    <p class="dim">Sem prazo travado. Anda quando a turma anda.</p>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide">
+    <div class="kicker">O que separa quem fica de quem sai</div>
+    <h2>Como estudar isso</h2>
+    <ul>
+      <li><strong>20 min por dia &gt; 3h no domingo.</strong> O cérebro fixa por repetição espaçada, não por volume.</li>
+      <li><strong>Se você não consegue explicar, você não entendeu.</strong> Vale pra mim também.</li>
+      <li><strong>Digite o código, não copie.</strong> A mão aprende junto.</li>
+      <li><strong>IA pra escrever código: depois.</strong> Agora é como calculadora antes de saber somar.</li>
+    </ul>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li><strong>1.</strong> Responder o formulário: por que você quer aprender e o que quer conseguir fazer em 3 meses</li>
+      <li><strong>2.</strong> Terminar o cartão de apresentação e mandar print no grupo</li>
+      <li><strong>3.</strong> Programa que pergunta dois números e mostra a soma
+        <br><span class="dim" style="font-size:2.1vh">Vai dar errado de primeira. É de propósito. Descubram por quê.</span></li>
+      <li><strong>4.</strong> Ler o guia de instalação — sábado a gente instala Python na sua máquina</li>
+    </ul>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide center">
+    <h1>Vocês já são<br>programadores</h1>
+    <p class="lead">Ruins ainda. Todo mundo começa ruim. Eu comecei ruim.</p>
+    <p class="lead dim">A diferença entre quem fica e quem sai<br>não é talento. É aparecer no sábado seguinte.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  // swipe (tablet / celular)
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
