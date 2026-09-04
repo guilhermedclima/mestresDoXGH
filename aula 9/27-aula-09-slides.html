@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 9</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,62ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)} .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex; gap:2.5vw; flex-wrap:wrap; width:100%; align-items:flex-start}
+  .col{flex:1 1 0; min-width:250px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:2.1vh; max-width:none; width:100%}
+  .card{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh}
+  .card .t{font-size:2.2vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.9vh; color:var(--dim); line-height:1.4}
+  .card .m{font-size:2.4vh; font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--fg)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{border-left:4px solid var(--accent); padding-left:2.4vh; font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch}
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .center pre{text-align:left}
+  .tag{display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--bg); background:var(--accent); padding:.4em .9em; border-radius:100px}
+  .tag.ia{background:var(--accent2); color:#fff}
+
+  table{border-collapse:collapse; font-size:2.4vh}
+  td,th{padding:1.1vh 2vh; border-bottom:1px solid var(--border); text-align:left}
+  th{color:var(--accent); font-size:1.9vh; letter-spacing:.06em; text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--accent2); font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 9</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 9 · 10 de outubro</div>
+    <h1>Erros e debug</h1>
+    <p class="lead dim">O programa que não morre.</p>
+    <p class="lead" style="color:var(--accent)">Hoje eu pago a dívida mais antiga do curso.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">A promessa mais velha daqui</div>
+    <h2>Sete semanas</h2>
+    <table>
+      <tr><th>Quando</th><th>O que aconteceu</th></tr>
+      <tr><td class="mono">Aula 2</td><td>"e se a pessoa digitar <code>abc</code>?" — eu disse: guardem</td></tr>
+      <tr><td class="mono">Aula 3</td><td>resolvi <strong>meio</strong>, com <code>.isdigit()</code></td></tr>
+      <tr><td class="mono">Aula 8</td><td>o <code>FileNotFoundError</code> mostrou que é maior que o <code>abc</code></td></tr>
+      <tr><td class="mono">Aula 9</td><td><strong>hoje</strong></td></tr>
+    </table>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="kicker">O que o .isdigit() resolvia</div>
+    <h2>E o que ele não resolvia</h2>
+<pre class="err" style="font-size:2.3vh"><span class="s">'42'</span>     .isdigit() -> <span class="k">True</span>
+<span class="s">'abc'</span>    .isdigit() -> <span class="k">False</span>
+<span class="s">'-5'</span>     .isdigit() -> <span class="k">False</span>   <span class="c">← mas -5 É número</span>
+<span class="s">'3.14'</span>   .isdigit() -> <span class="k">False</span>   <span class="c">← e 3.14 também</span></pre>
+    <p class="dim">Para funcionar de verdade teria que saber sobre sinal, ponto decimal, espaço, notação científica...</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide center">
+    <h1>Antes de tratar erro,<br>aprenda a <span class="hl">ler</span> erro</h1>
+    <p class="lead dim">Hoje a tela vermelha deixa de ser tela vermelha<br>e vira <strong>informação</strong>.</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <div class="kicker">Um traceback de verdade</div>
+    <h2>Leia de baixo para cima</h2>
+<pre class="err" style="font-size:1.8vh">Traceback (most recent call last):
+  File "...", line 10, in &lt;module&gt;
+    main()
+  File "...", line 8, in main
+    return processar("Ana oito")
+  File "...", line 6, in processar
+    return nome, ler_nota(nota)
+  File "...", line 3, in ler_nota
+    return float(texto)
+<span class="e">ValueError</span>: could not convert string to float: <span class="s">'oito'</span></pre>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">Três camadas</div>
+    <h2>O que ler, e nesta ordem</h2>
+    <ul>
+      <li class="n1"><strong>A última linha é o QUÊ.</strong> Tentou virar número um texto que não é número — e o texto era <code>'oito'</code></li>
+      <li class="n2"><strong>A linha acima é o ONDE.</strong> <code>in ler_nota</code>, no <code>float(texto)</code></li>
+      <li class="n3"><strong>O resto é o CAMINHO até lá.</strong> Quem chamou quem</li>
+    </ul>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide center">
+    <h2><em>Traceback</em> quer dizer<br><strong>o rastro de volta</strong></h2>
+    <p class="lead">Iniciante olha e vê um monte de linha.</p>
+    <p class="lead" style="color:var(--accent)">Quem já sofreu olha a última linha primeiro,<br>e só sobe se precisar.</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">Vocês colecionaram estes em oito aulas</div>
+    <h2>O catálogo</h2>
+    <table style="font-size:2vh">
+      <tr><td class="mono">SyntaxError</td><td>escrevi errado, nem rodou</td><td class="dim">Aula 3</td></tr>
+      <tr><td class="mono">NameError</td><td>esse nome não existe</td><td class="dim">Aula 6</td></tr>
+      <tr><td class="mono">TypeError</td><td>tipo errado para a operação</td><td class="dim">Aula 2</td></tr>
+      <tr><td class="mono">ValueError</td><td>tipo certo, valor impossível</td><td class="dim">hoje</td></tr>
+      <tr><td class="mono">IndexError</td><td>posição que não existe</td><td class="dim">Aula 5</td></tr>
+      <tr><td class="mono">KeyError</td><td>chave que não existe</td><td class="dim">Aula 7</td></tr>
+      <tr><td class="mono">FileNotFoundError</td><td>o arquivo não está lá</td><td class="dim">Aula 8</td></tr>
+    </table>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">Os dois que mais confundem</div>
+    <h2><code>TypeError</code> vs <code>ValueError</code></h2>
+    <div class="cols">
+      <div class="col">
+        <div class="card"><span class="t">TypeError</span><span class="m">"2" + 2</span><span class="d">TIPO errado. Somar texto com número não existe.</span></div>
+      </div>
+      <div class="col">
+        <div class="card"><span class="t">ValueError</span><span class="m">int("abc")</span><span class="d">Tipo certo, VALOR impossível. É texto, mas não vira número.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">A ferramenta de hoje</div>
+    <h2><code>try</code> / <code>except</code></h2>
+<pre class="good"><span class="k">try</span>:
+    numero = <span class="k">int</span>(<span class="s">"abc"</span>)
+<span class="k">except</span> <span class="e">ValueError</span>:
+    <span class="k">print</span>(<span class="s">"isso não é um número"</span>)
+
+<span class="k">print</span>(<span class="s">"e o programa continua vivo"</span>)</pre>
+    <p class="lead">Tente isto; se der aquele erro,<br>faça aquilo <strong>em vez de morrer</strong>.</p>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide center">
+    <div class="kicker">Sete semanas depois</div>
+    <h1>O <code>abc</code></h1>
+<pre class="good" style="font-size:2.3vh"><span class="k">def</span> pedir_numero(texto):
+    <span class="k">try</span>:
+        <span class="k">return</span> <span class="k">float</span>(texto)
+    <span class="k">except</span> <span class="e">ValueError</span>:
+        <span class="k">return</span> <span class="k">None</span></pre>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="kicker">E agora funciona de verdade</div>
+    <h2>Inclusive o que o <code>.isdigit()</code> errava</h2>
+<pre class="good" style="font-size:2.2vh"><span class="s">'42'</span>     -> <span class="k">42.0</span>
+<span class="s">'abc'</span>    -> <span class="k">None</span>
+<span class="s">'-5'</span>     -> <span class="k">-5.0</span>      <span class="c">← errava este</span>
+<span class="s">'3.14'</span>   -> <span class="k">3.14</span>      <span class="c">← e este</span>
+<span class="s">''</span>       -> <span class="k">None</span>
+<span class="s">'  7  '</span>  -> <span class="k">7.0</span>       <span class="c">← até o espaço</span></pre>
+    <p class="lead" style="color:var(--accent)">Dívida paga.</p>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide center">
+    <h2>Por que funciona melhor</h2>
+    <p class="lead"><code>.isdigit()</code> tentava <strong>prever</strong><br>todas as formas de ser número.</p>
+    <p class="lead"><code>try/except</code> faz o contrário:<br><strong>deixa o Python tentar</strong> e reage se falhar.</p>
+    <p class="quote" style="font-size:2.8vh;margin-top:1.5vh">É mais fácil pedir perdão do que permissão.</p>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 1</div>
+    <h2>O <code>except</code> pelado</h2>
+<pre class="err" style="font-size:2.2vh"><span class="k">def</span> dividir(a, b):
+    <span class="k">try</span>:
+        <span class="k">return</span> a / b
+    <span class="k">except</span>:                <span class="c"># sem dizer QUAL</span>
+        <span class="k">return</span> <span class="s">"deu algum problema"</span>
+
+<span class="c">5.0
+deu algum problema
+deu algum problema
+deu algum problema</span></pre>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide center">
+    <h2>Parece que funcionou:<br>nada quebrou.</h2>
+    <h1 style="color:var(--err)">E é exatamente<br>esse o problema.</h1>
+    <p class="lead dim"><code>dividir(10, [1,2])</code> não é problema do usuário.<br>É um bug seu que você acabou de esconder <strong>de si mesmo</strong>.</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <div class="kicker">Tratando o erro certo, pelo nome</div>
+    <h2>Agora o bug aparece</h2>
+<pre class="good" style="font-size:2.2vh"><span class="k">except</span> <span class="e">ZeroDivisionError</span>:
+    <span class="k">return</span> <span class="s">"não dá para dividir por zero"</span></pre>
+<pre class="err" style="font-size:2.1vh;margin-top:1vh">dividir_certo(<span class="k">10</span>, <span class="s">"dois"</span>)
+
+<span class="e">TypeError</span>: unsupported operand type(s)
+for /: <span class="s">'int'</span> and <span class="s">'str'</span></pre>
+    <p class="dim">E aparecer é bom: é assim que se conserta.</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide center">
+    <span class="tag">Escrevam no caderno</span>
+    <p class="quote" style="font-size:3.2vh;max-width:40ch">Trate o erro que você espera, <strong>pelo nome</strong>.<br><br>O que você não esperava deve continuar estourando — ele está te avisando de algo.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide center">
+    <h1><code>except:</code> pelado é a<br>gambiarra mais cara do Python</h1>
+    <p class="lead dim">Muito XGH.</p>
+    <p class="lead" style="color:var(--accent)">E você paga depois.</p>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.</p>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 2</div>
+    <h2>O <code>try</code> grande demais</h2>
+<pre class="err" style="font-size:2vh"><span class="k">try</span>:
+    idade = <span class="k">int</span>(<span class="s">"30"</span>)
+    dobro = idade * <span class="k">2</span>
+    nome = <span class="s">"Ana"</span>
+    <span class="k">print</span>(<span class="e">nomee</span>)          <span class="c"># typo escondido aqui</span>
+<span class="k">except</span> <span class="k">Exception</span> <span class="k">as</span> e:
+    <span class="k">print</span>(<span class="s">"algo deu errado:"</span>, e)</pre>
+    <p class="dim">Se o bloco tivesse trinta linhas, boa sorte.<br><strong><code>try</code> grande é <code>except</code> pelado disfarçado.</strong></p>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide">
+    <div class="kicker">Mais duas peças</div>
+    <h2><code>else</code> e <code>finally</code></h2>
+    <div class="grid">
+      <div class="card"><span class="t">else</span><span class="d">roda SÓ se o try deu certo</span></div>
+      <div class="card"><span class="t">finally</span><span class="d">roda SEMPRE, com erro ou sem</span></div>
+    </div>
+    <p class="dim" style="margin-top:1vh">O <code>finally</code> é para limpeza — e foi exatamente isso que o <code>with</code> da Aula 8 fez por vocês nos bastidores.</p>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide">
+    <div class="kicker">Levantar o seu próprio erro</div>
+    <h2><code>raise</code></h2>
+<pre class="good" style="font-size:2.2vh"><span class="k">def</span> calcular_media(notas):
+    <span class="k">if</span> <span class="k">len</span>(notas) == <span class="k">0</span>:
+        <span class="k">raise</span> <span class="e">ValueError</span>(<span class="s">"a lista está vazia"</span>)
+    <span class="k">return</span> <span class="k">sum</span>(notas) / <span class="k">len</span>(notas)</pre>
+    <p class="dim">Sem o <code>raise</code>: <code>ZeroDivisionError: division by zero</code>.<br>Tecnicamente correto. E inútil para quem chamou.</p>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide center">
+    <h1>Um erro bom<br>diz <span class="hl">o que fazer</span></h1>
+    <p class="lead">"a lista de notas está vazia"</p>
+    <p class="lead dim">é infinitamente melhor que</p>
+    <p class="lead">"division by zero"</p>
+    <p class="dim" style="margin-top:1.5vh">Mesmo sendo o mesmo problema.<br>É o que separa biblioteca boa de biblioteca ruim.</p>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide">
+    <div class="kicker">Achar o erro que NÃO dá erro</div>
+    <h2>Três técnicas, nesta ordem</h2>
+    <ul>
+      <li class="n1"><strong>O <code>print</code> bem colocado.</strong> Não é vergonha — é a ferramenta mais usada do mundo. Marque com <code>[debug]</code></li>
+      <li class="n2"><strong>Bisseção.</strong> Programa de 100 linhas errado? <code>print</code> na 50. Certo? o problema é depois. Errado? é antes</li>
+      <li class="n3"><strong>Ler o erro antes de mexer.</strong> Em metade das vezes a última linha já resolve</li>
+    </ul>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide center">
+    <h2>Sete cortes acham a agulha<br>em cem linhas</h2>
+    <p class="lead" style="color:var(--accent)">É a busca binária do robô da Aula 6.</p>
+    <p class="lead dim">A mesma ideia, resolvendo outro problema.</p>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide">
+    <span class="tag">Mão na massa</span>
+    <h2>A agenda que não morre</h2>
+<pre class="good" style="font-size:1.9vh"><span class="k">try</span>:
+    <span class="k">with</span> <span class="k">open</span>(arquivo) <span class="k">as</span> f:
+        <span class="k">return</span> json.load(f)
+<span class="k">except</span> <span class="e">FileNotFoundError</span>:
+    <span class="k">print</span>(<span class="s">"(primeira execução)"</span>)
+    <span class="k">return</span> []
+<span class="k">except</span> json.<span class="e">JSONDecodeError</span>:
+    <span class="k">print</span>(<span class="s">"(arquivo corrompido)"</span>)
+    <span class="k">return</span> []</pre>
+    <p class="dim"><strong>Dois problemas diferentes, dois tratamentos.</strong></p>
+  </section>
+
+  <!-- 27 -->
+  <section class="slide center">
+    <span class="tag ia">💊 Pílula de IA</span>
+    <h1>Quando a IA erra,<br>quem depura é você</h1>
+  </section>
+
+  <!-- 28 -->
+  <section class="slide">
+    <div class="kicker">Etapa 1 · jogando absurdo no detector da Aula 3</div>
+    <h2>O que sai</h2>
+<pre style="font-size:1.9vh"><span class="e">spam</span>   ( 99.6%)  &lt;- <span class="s">'promocao gratis clique aqui'</span>
+<span class="s">normal</span> ( 88.1%)  &lt;- <span class="s">'vamos almocar amanha'</span>
+<span class="e">spam</span>   ( 61.2%)  &lt;- <span class="s">'o curso e gratis para os alunos'</span>
+<span class="s">normal</span> (<span class="hl"> 50.0%</span>)  &lt;- <span class="s">'asdfgh qwerty zxcvbn'</span>
+<span class="s">normal</span> (<span class="hl"> 50.0%</span>)  &lt;- <span class="s">''</span>
+<span class="s">normal</span> (<span class="hl"> 50.0%</span>)  &lt;- <span class="s">'the quick brown fox...'</span>
+<span class="s">normal</span> (<span class="hl"> 50.0%</span>)  &lt;- <span class="s">'1234567890'</span></pre>
+  </section>
+
+  <!-- 29 -->
+  <section class="slide center">
+    <h1>Eu mandei uma mensagem<br><span class="hl">vazia</span> e ele classificou.</h1>
+    <p class="lead">Letras aleatórias: classificou.<br>Inglês, que ele nunca viu: classificou.</p>
+    <p class="lead" style="color:var(--err);margin-top:1.5vh">Nenhum <code>ValueError</code>.<br>Nenhum traceback. Nenhuma tela vermelha.</p>
+  </section>
+
+  <!-- 30 -->
+  <section class="slide">
+    <div class="kicker">Etapa 2 · a diferença que muda o seu trabalho</div>
+    <h2>Código vs modelo</h2>
+    <table style="font-size:2.1vh">
+      <tr><th></th><th>Código</th><th>Modelo</th></tr>
+      <tr><td>Quando dá errado</td><td><strong>grita</strong></td><td><strong>sussurra</strong></td></tr>
+      <tr><td>Você descobre</td><td>na hora</td><td>só se for olhar</td></tr>
+      <tr><td>O defeito está</td><td>numa linha</td><td>espalhado nos dados</td></tr>
+      <tr><td>Conserta</td><td>corrige a linha</td><td>mais exemplo, melhor dado</td></tr>
+    </table>
+  </section>
+
+  <!-- 31 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.6vh;max-width:34ch">Um programa quebrado <strong>te avisa</strong>.<br><br>Um modelo quebrado <strong>te deixa confiante</strong>.</p>
+  </section>
+
+  <!-- 32 -->
+  <section class="slide center">
+    <div class="kicker">Etapa 3 · mas olhem aquele número</div>
+    <h1><span class="hl">50.0%</span></h1>
+    <p class="lead">Num problema de duas classes,<br>50% é <strong>cara ou coroa</strong>.</p>
+    <p class="lead dim">Ele está dizendo, com o único vocabulário que tem:<br><em>"não faço a menor ideia"</em>.</p>
+  </section>
+
+  <!-- 33 -->
+  <section class="slide center">
+    <h2>Ele <strong>tem</strong> a informação.</h2>
+    <h2>Só ninguém estava olhando.</h2>
+    <p class="lead dim" style="margin-top:2vh">E lembram do <strong>61%</strong> da Aula 3?<br>Mesmo número, mesmo recado: em cima do muro.</p>
+  </section>
+
+  <!-- 34 -->
+  <section class="slide">
+    <div class="kicker">Etapa 4 · juntando tudo que vocês sabem</div>
+    <h2>Um modelo que sabe dizer "não sei"</h2>
+<pre class="good" style="font-size:2vh"><span class="k">def</span> classificar_com_duvida(texto, limiar=<span class="k">80</span>):
+    <span class="k">if</span> <span class="k">not</span> texto.strip():
+        <span class="k">raise</span> <span class="e">ValueError</span>(<span class="s">"mensagem vazia"</span>)
+
+    resultado, conf = classificar(texto)
+
+    <span class="k">if</span> conf &lt; limiar:
+        <span class="k">return</span> <span class="s">"nao sei"</span>, conf
+    <span class="k">return</span> resultado, conf</pre>
+    <p class="dim"><code>if</code> da Aula 3 · função da Aula 6 · <code>raise</code> de hoje</p>
+  </section>
+
+  <!-- 35 -->
+  <section class="slide">
+    <div class="kicker">E o resultado</div>
+    <h2>Todo absurdo foi para o humano</h2>
+<pre class="good" style="font-size:1.8vh"><span class="e">spam</span>     ( 99.6%)            &lt;- promocao gratis clique
+<span class="s">normal</span>   ( 88.1%)            &lt;- vamos almocar amanha
+<span class="hl">nao sei</span>  ( 61.2%) -> HUMANO  &lt;- o curso e gratis...
+<span class="hl">nao sei</span>  ( 50.0%) -> HUMANO  &lt;- asdfgh qwerty zxcvbn
+ERRO                         &lt;- ''  (mensagem vazia)
+<span class="hl">nao sei</span>  ( 50.0%) -> HUMANO  &lt;- the quick brown fox
+<span class="hl">nao sei</span>  ( 50.0%) -> HUMANO  &lt;- 1234567890</pre>
+  </section>
+
+  <!-- 36 -->
+  <section class="slide center">
+    <h1>O erro da Aula 3 virou<br>um "<span class="hl">não sei</span>"</h1>
+    <p class="lead">Em vez de uma resposta errada<br>com cara de certeza.</p>
+    <p class="lead dim" style="margin-top:1.5vh">Isso tem nome na indústria:<br><strong>human in the loop</strong>.</p>
+  </section>
+
+  <!-- 37 -->
+  <section class="slide">
+    <div class="kicker">E o limiar é um botão de negócio</div>
+    <h2>Não é uma decisão técnica</h2>
+<pre style="font-size:2.2vh"><span class="c">limiar 60% -> 3 de 6 para revisão humana
+limiar 70% -> 4 de 6
+limiar 80% -> 4 de 6
+limiar 90% -> 5 de 6
+limiar 95% -> 5 de 6</span></pre>
+    <p class="dim">Alto: mais segurança, mais trabalho humano, mais custo.<br>Baixo: mais automação, mais erro passando.</p>
+  </section>
+
+  <!-- 38 -->
+  <section class="slide center">
+    <h2>Não existe resposta certa.</h2>
+    <h1>Existe a certa<br><span class="hl">para aquele negócio</span>.</h1>
+    <p class="lead dim" style="margin-top:1.5vh">Filtro de spam pessoal e triagem de exame médico<br>não têm o mesmo limiar.</p>
+  </section>
+
+  <!-- 39 -->
+  <section class="slide">
+    <div class="kicker">Guardem estas três</div>
+    <h2>O que fica da pílula de hoje</h2>
+    <ul>
+      <li class="n1"><strong>Modelo não levanta exceção.</strong> Responde sempre, inclusive sobre o que não conhece.</li>
+      <li class="n2"><strong>Código grita, modelo sussurra.</strong></li>
+      <li class="n3"><strong>A confiança é a única tela vermelha que o modelo tem</strong> — e virar "não sei" é uma decisão de engenharia que vocês escrevem com um <code>if</code>.</li>
+    </ul>
+  </section>
+
+  <!-- 40 -->
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><code>pedir_numero()</code> que insiste — e <strong>use no Projeto 1</strong>, que quebra hoje se digitar letra</li>
+      <li class="n2"><strong>Agenda à prova de bala:</strong> inexistente, corrompido, menu errado — cada um com seu <code>except</code></li>
+      <li class="n3"><strong>CSV tolerante:</strong> pula a linha quebrada, avisa qual foi, continua</li>
+      <li><strong>Desafio:</strong> quando o modelo disser "não sei", perguntar a você e acrescentar o exemplo no CSV. Isso se chama <strong>active learning</strong></li>
+    </ul>
+  </section>
+
+  <!-- 41 -->
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h2>Agora imaginem esse CSV com<br><strong>5.000 linhas</strong> e <strong>12 colunas</strong>.</h2>
+    <p class="lead">Média por cidade. Total por mês. Os dez maiores.</p>
+    <p class="lead dim">Dá para fazer com <code>for</code>, <code>if</code> e dicionário —<br>vocês já sabem tudo que é preciso.</p>
+  </section>
+
+  <!-- 42 -->
+  <section class="slide center">
+    <h1>Quantas linhas de código<br>isso vai ter?</h1>
+    <p class="lead dim" style="margin-top:2vh">Semana que vem vocês param de escrever cem linhas<br>para fazer o que cabe em três.</p>
+  </section>
+
+  <!-- 43 -->
+  <section class="slide center">
+    <h1>Hoje os programas de vocês<br>pararam de <span class="hl">morrer</span></h1>
+    <p class="lead">E a dívida da Aula 2 está paga.</p>
+    <p class="lead dim">Pela primeira vez no curso,<br>nenhuma promessa antiga em aberto.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
