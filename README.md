@@ -33,7 +33,13 @@ Cada aula fica na sua própria pasta e gera três ou quatro peças, numeradas em
 | 2 | 22/08/2026 | Tipos, conversão e f-string | [roteiro](aula%202/04-aula-02-roteiro.md) · [slides](aula%202/05-aula-02-slides.html) · [notebook](aula%202/06-aula-02-notebook.ipynb) | ✅ dada |
 | 3 | 29/08/2026 | Condicionais: `if` / `elif` / `else` | [roteiro](aula%203/07-aula-03-roteiro.md) · [slides](aula%203/08-aula-03-slides.html) · [notebook](aula%203/09-aula-03-notebook.ipynb) | ✅ preparada |
 | 4 | 05/09/2026 | Repetição: `for`, `while`, `range` | [roteiro](aula%204/10-aula-04-roteiro.md) · [slides](aula%204/11-aula-04-slides.html) · [notebook](aula%204/12-aula-04-notebook.ipynb) | ✅ preparada |
-| 5 | 12/09/2026 | Listas e strings | — | ⬜ a preparar |
+| 5 | 12/09/2026 | Listas e strings | [roteiro](aula%205/13-aula-05-roteiro.md) · [slides](aula%205/14-aula-05-slides.html) · [notebook](aula%205/15-aula-05-notebook.ipynb) | ✅ preparada |
+| 6 | 19/09/2026 | Funções + **Projeto 1** | [roteiro](aula%206/16-aula-06-roteiro.md) · [slides](aula%206/17-aula-06-slides.html) · [notebook](aula%206/18-aula-06-notebook.ipynb) | ✅ preparada |
+| 7 | 26/09/2026 | Dicionários e JSON | [roteiro](aula%207/19-aula-07-roteiro.md) · [slides](aula%207/20-aula-07-slides.html) · [notebook](aula%207/21-aula-07-notebook.ipynb) | ✅ preparada |
+| 8 | 03/10/2026 | Arquivos + instalação local | [roteiro](aula%208/22-aula-08-roteiro.md) · [slides](aula%208/23-aula-08-slides.html) · [notebook](aula%208/24-aula-08-notebook.ipynb) · [guia de instalação](aula%208/25-guia-instalacao-local.md) | ✅ preparada |
+| 9 | 10/10/2026 | Erros e debug | [roteiro](aula%209/26-aula-09-roteiro.md) · [slides](aula%209/27-aula-09-slides.html) · [notebook](aula%209/28-aula-09-notebook.ipynb) | ✅ preparada |
+| 10 | 17/10/2026 | pandas — *fecha o Módulo 2* | [roteiro](aula%2010/29-aula-10-roteiro.md) · [slides](aula%2010/30-aula-10-slides.html) · [notebook](aula%2010/31-aula-10-notebook.ipynb) | ✅ preparada |
+| 11 | 24/10/2026 | Bibliotecas e `pip` | — | ⬜ a preparar |
 
 O plano completo do curso — as 24 aulas, os módulos e o porquê de cada decisão — está em **[`00-plano-do-curso.md`](00-plano-do-curso.md)**.
 
@@ -67,7 +73,7 @@ Bloco fixo de ~16 minutos no fim de toda aula, ligando o fundamento daquele dia 
 | 9 | Erros e debug | Quando a IA erra, quem depura é você |
 | 10 | pandas | 80% do trabalho de IA é limpar tabela |
 
-Da Aula 11 em diante o curso já está dentro do tema.
+Da Aula 11 em diante **a pílula deixa de ser bloco separado** — a aula inteira já é sobre o tema.
 
 ---
 
@@ -81,8 +87,14 @@ O curso tem um padrão narrativo: **cada aula abre pagando uma pergunta deixada 
 | A sobra negativa da calculadora | Aula 3, abertura |
 | "E se a pessoa digitar `abc`?" | Aula 3, parcialmente (`.isdigit()`) |
 | "E se eu tivesse 200 faixas? Copiaria 200 `elif`?" | Aula 4, abertura e mão na massa |
-| "O `for` só anda do começo ao fim — e se eu quiser o terceiro? ordenar? o maior?" | **Aula 5** |
-| O `abc` resolvido de verdade, com `try/except` | **Aula 9 — prometido, cumprir** |
+| "O `for` só anda do começo ao fim — e o terceiro? ordenar? o maior?" | Aula 5, abertura |
+| "Escrevi o mesmo bloco em três lugares — e quando a regra mudar?" | Aula 6, abertura |
+| "A lista guarda ordem, mas não guarda **nome**" | Aula 7, abertura |
+| "Fechei o Colab e perdi tudo — como o dado sobrevive?" | Aula 8, abertura |
+| "O programa morre no primeiro imprevisto" | Aula 9, a aula inteira |
+| **O `abc` com `try/except`** — a dívida da Aula 2 | ✅ **paga na Aula 9** |
+| "O CSV tem 5.000 linhas. Conto na mão com `for`?" | Aula 10, abertura |
+| "O pandas não veio com o Python. Quem escreveu? Como pego outras?" | **Aula 11** |
 
 ---
 
@@ -95,6 +107,12 @@ mestresDoXGH/
 ├── aula 2/                   # 04, 05, 06
 ├── aula 3/                   # 07, 08, 09
 ├── aula 4/                   # 10, 11, 12
+├── aula 5/                   # 13, 14, 15
+├── aula 6/                   # 16, 17, 18
+├── aula 7/                   # 19, 20, 21
+├── aula 8/                   # 22, 23, 24, 25
+├── aula 9/                   # 26, 27, 28
+├── aula 10/                  # 29, 30, 31
 └── README.md
 ```
 

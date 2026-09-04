@@ -165,11 +165,38 @@ Ensinar é a forma mais eficiente de descobrir o que você só *acha* que entend
 
 ## 6. Estado do curso
 
+> **Revisão 3 — 04/09/2026.** As aulas 4 a 10 estão preparadas de uma vez, fechando os Módulos 1 e 2.
+> A corrente de dívidas entre elas está montada; cada roteiro tem um bloco marcado de abertura para
+> trocar pela pergunta que a turma trouxer de verdade.
+
 - [x] Aula 1 dada (15/08) — rodou no tempo
 - [x] Formulário respondido — interesse confirmado em **IA e automação**
 - [x] Aula 2 dada (22/08) — rodou no tempo, mesmo ritmo
 - [x] **Pílula de IA validada:** engajou bem na Aula 2. Confirmada como bloco fixo, e ampliada para ~16 min a partir da Aula 3, com demo rodando na tela sempre que der
-- [x] Aula 3 preparada (roteiro, slides e notebook)
+- [x] Aula 3 dada (29/08) — condicionais
+- [x] Aula 4 preparada (05/09) — repetição
+- [x] Aula 5 preparada (12/09) — listas e strings
+- [x] Aula 6 preparada (19/09) — funções + **Projeto 1: jogo de adivinhação**
+- [x] Aula 7 preparada (26/09) — dicionários e JSON
+- [x] Aula 8 preparada (03/10) — arquivos + **instalação local** (quatro peças, com guia para os alunos)
+- [x] Aula 9 preparada (10/10) — erros e debug. **Paga a dívida do `abc`, aberta desde a Aula 2**
+- [x] Aula 10 preparada (17/10) — pandas. **Fecha o Módulo 2 e é a última pílula separada**
+- [x] Repositório no GitHub: `github.com/guilhermedclima/mestresDoXGH`
 - [ ] Grupo de mensagens ativo com o material da Aula 1
-- [ ] Repositório no GitHub para os materiais (pode esperar até a Aula 14, quando Git vira conteúdo)
 - [ ] `duvidas-da-turma.md` iniciado
+- [ ] **Próxima a preparar: Aula 11 — bibliotecas e `pip`.** Muda o formato: sem pílula separada
+
+### A corrente de dívidas montada
+
+Cada aula abre pagando a pergunta deixada na anterior:
+
+| Aula | Abre pagando | Deixa em aberto |
+|---|---|---|
+| 4 | os 200 `elif` | "o `for` só anda do começo ao fim — e o terceiro? ordenar? o maior?" |
+| 5 | o maior salário (na mão, antes do `max()`) | "escrevi o mesmo bloco em três lugares" |
+| 6 | o bloco repetido | "a lista guarda ordem, mas não guarda **nome**" |
+| 7 | o par nome/valor | "fechei o Colab e perdi tudo" |
+| 8 | a perda do dado | "o programa morre no primeiro imprevisto" |
+| 9 | esse imprevisto — **e o `abc` da Aula 2** | "o CSV tem 5.000 linhas" |
+| 10 | as 5.000 linhas | "quem escreveu o pandas? como pego outras bibliotecas?" |
+| 11 | essa pergunta | *(a definir)* |
