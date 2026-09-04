@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 7</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,62ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)} .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex; gap:2.5vw; flex-wrap:wrap; width:100%; align-items:flex-start}
+  .col{flex:1 1 0; min-width:250px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:2.1vh; max-width:none; width:100%}
+  .card{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh}
+  .card .t{font-size:2.2vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.9vh; color:var(--dim); line-height:1.4}
+  .card .m{font-size:2.4vh; font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--fg)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{border-left:4px solid var(--accent); padding-left:2.4vh; font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch}
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .center pre{text-align:left}
+  .tag{display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--bg); background:var(--accent); padding:.4em .9em; border-radius:100px}
+  .tag.ia{background:var(--accent2); color:#fff}
+
+  table{border-collapse:collapse; font-size:2.4vh}
+  td,th{padding:1.1vh 2vh; border-bottom:1px solid var(--border); text-align:left}
+  th{color:var(--accent); font-size:1.9vh; letter-spacing:.06em; text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--accent2); font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 7</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 7 · 26 de setembro</div>
+    <h1>Dicionários e JSON</h1>
+    <p class="lead dim">Dado com nome.</p>
+    <p class="lead" style="color:var(--accent2)">Hoje vocês passam a ler a língua<br>que toda API de IA fala.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Semana passada</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes"><code>def</code>, parâmetro, <code>return</code></li>
+      <li class="yes"><code>print</code> mostra · <code>return</code> entrega</li>
+      <li class="yes">O Projeto 1 — e o robô com 5.78 tentativas</li>
+      <li class="yes">Um modelo é uma função cujo corpo os dados escreveram</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">E ficou <strong>uma pergunta em aberto.</strong></p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="kicker">A pergunta em aberto · vamos ver acontecer</div>
+    <h2>Ordenei só as notas</h2>
+<pre class="err" style="font-size:2.2vh">nomes = [<span class="s">"Ana"</span>, <span class="s">"Bruno"</span>, <span class="s">"Carla"</span>]
+notas = [<span class="k">8.5</span>, <span class="k">4.0</span>, <span class="k">9.5</span>]
+
+notas.sort(reverse=<span class="k">True</span>)
+
+<span class="c">Ana    9.5
+Bruno  8.5
+Carla  4.0</span></pre>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide center">
+    <h1>A Ana ficou com<br>a nota da Carla</h1>
+    <p class="lead" style="color:var(--err)">E nenhum erro vermelho apareceu.</p>
+    <p class="dim">De novo: o mesmo tipo de bug da ordem dos <code>elif</code><br>e do acumulador zerado.</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide center">
+    <h1>A lista guarda <span class="hl">ordem</span>.</h1>
+    <h1>Ela não guarda <span class="hl">nome</span>.</h1>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">A ferramenta de hoje</div>
+    <h2>Dicionário: cada valor tem um nome</h2>
+<pre class="good">aluno = {
+    <span class="s">"nome"</span>: <span class="s">"Ana"</span>,
+    <span class="s">"nota"</span>: <span class="k">8.5</span>,
+    <span class="s">"faltas"</span>: <span class="k">2</span>
+}
+
+aluno[<span class="s">"nome"</span>]    <span class="c"># Ana</span>
+aluno[<span class="s">"nota"</span>]    <span class="c"># 8.5</span></pre>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="kicker">A diferença que muda tudo</div>
+    <h2>O que você precisa saber</h2>
+    <table>
+      <tr><th></th><th>Como pede</th><th>Precisa saber</th></tr>
+      <tr><td>lista</td><td class="mono">alunos[0]</td><td>em que <strong>posição</strong> está</td></tr>
+      <tr><td>dicionário</td><td class="mono">aluno["nome"]</td><td>o <strong>nome</strong> da informação</td></tr>
+    </table>
+    <p class="lead" style="margin-top:1vh">O valor está amarrado ao <strong>nome</strong>,<br>não à posição.</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">Vocabulário</div>
+    <h2>Chave e valor</h2>
+<pre style="font-size:2.6vh"><span class="hl">"nota"</span>: <span class="k">8.5</span>
+  │      └── <span class="c">valor (value)</span>
+  <span class="c">└───────── chave (key)</span></pre>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">Mudar e criar</div>
+    <h2>Atribuir numa chave nova <em>cria</em> a chave</h2>
+<pre>aluno[<span class="s">"nota"</span>] = <span class="k">9.0</span>              <span class="c"># muda</span>
+aluno[<span class="s">"email"</span>] = <span class="s">"ana@..."</span>      <span class="c"># CRIA</span>
+
+<span class="k">len</span>(aluno)          <span class="c"># 4</span>
+<span class="s">"nota"</span> <span class="k">in</span> aluno     <span class="c"># True</span></pre>
+    <p class="dim">Numa lista de 3 itens, <code>notas[10] = 5</code> dá <code>IndexError</code>.<br>Aqui o dicionário só cresce.</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 1</div>
+    <h2>Uma chave que não existe</h2>
+<pre class="err">aluno[<span class="s">"telefone"</span>]
+
+<span class="e">KeyError</span>: <span class="s">'telefone'</span></pre>
+    <p class="lead"><code>KeyError</code> é o <code>IndexError</code> do dicionário.</p>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <div class="kicker">Para perguntar sem quebrar</div>
+    <h2><code>.get()</code></h2>
+<pre class="good" style="font-size:2.3vh">aluno.get(<span class="s">"telefone"</span>)
+<span class="c"># None</span>
+
+aluno.get(<span class="s">"telefone"</span>, <span class="s">"não informado"</span>)
+<span class="c"># não informado</span></pre>
+    <p class="dim">Use quando <strong>não tem certeza</strong> de que a chave está lá.<br>E isso é a regra quando o dado vem de fora.</p>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 2</div>
+    <h2>Dicionário não tem índice</h2>
+<pre class="err">aluno[<span class="k">0</span>]
+
+<span class="e">KeyError</span>: <span class="k">0</span></pre>
+    <p>O <code>[0]</code> não é "o primeiro item" — é uma tentativa de buscar a chave <code>0</code>.</p>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide center">
+    <span class="tag">Regra de leitura, para sempre</span>
+    <h2>Viu <code>[ ]</code>? Olhe o que está <em>dentro</em>.</h2>
+    <div class="grid" style="margin-top:1vh">
+      <div class="card"><span class="t">número</span><span class="d">é posição → é uma LISTA</span></div>
+      <div class="card"><span class="t">texto</span><span class="d">é nome → é um DICIONÁRIO</span></div>
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide">
+    <div class="kicker">Percorrer</div>
+    <h2>O <code>for</code> sozinho passa pelas <em>chaves</em></h2>
+<pre><span class="k">for</span> chave <span class="k">in</span> aluno:
+    <span class="k">print</span>(chave, <span class="s">"->"</span>, aluno[chave])</pre>
+    <p class="dim">Não pelos valores. Isso pega gente.</p>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide">
+    <div class="kicker">O que vocês mais vão usar</div>
+    <h2><code>.items()</code> entrega os dois</h2>
+<pre class="good"><span class="k">for</span> chave, valor <span class="k">in</span> aluno.items():
+    <span class="k">print</span>(f<span class="s">"{chave} = {valor}"</span>)</pre>
+    <p class="dim">Repare: <strong>dois nomes</strong> antes do <code>in</code>.<br>Ele entrega duas variáveis por volta.</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide center">
+    <span class="tag">Sem exagero</span>
+    <h1>Lista de dicionários</h1>
+    <p class="lead">É o formato de <strong>quase todo dado</strong><br>que vocês vão encontrar na vida.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide">
+    <div class="kicker">Uma lista. Cada item, um dicionário.</div>
+    <h2>A turma, de verdade</h2>
+<pre style="font-size:2.1vh">turma = [
+    {<span class="s">"nome"</span>: <span class="s">"Ana"</span>,   <span class="s">"nota"</span>: <span class="k">8.5</span>, <span class="s">"faltas"</span>: <span class="k">2</span>},
+    {<span class="s">"nome"</span>: <span class="s">"Bruno"</span>, <span class="s">"nota"</span>: <span class="k">4.0</span>, <span class="s">"faltas"</span>: <span class="k">7</span>},
+    {<span class="s">"nome"</span>: <span class="s">"Carla"</span>, <span class="s">"nota"</span>: <span class="k">9.5</span>, <span class="s">"faltas"</span>: <span class="k">0</span>},
+]
+
+<span class="k">for</span> a <span class="k">in</span> turma:
+    <span class="k">print</span>(a[<span class="s">"nome"</span>], a[<span class="s">"nota"</span>])</pre>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide">
+    <div class="kicker">Cuidado com a aspa</div>
+    <h2>Fora dupla, dentro simples</h2>
+<pre class="good">f<span class="s">"{a['nome']} tirou {a['nota']}"</span>
+  ▲    ▲
+  <span class="c">│    └── simples aqui dentro
+  └─────── dupla aqui fora</span></pre>
+    <p class="dim">Mesma aspa dos dois lados e o Python se perde.</p>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide">
+    <div class="kicker">E as funções da Aula 6 continuam servindo</div>
+    <h2>Nada foi jogado fora</h2>
+<pre style="font-size:2.2vh"><span class="k">def</span> media_da_turma(turma):
+    soma = <span class="k">0</span>
+    <span class="k">for</span> a <span class="k">in</span> turma:
+        soma += a[<span class="s">"nota"</span>]
+    <span class="k">return</span> soma / <span class="k">len</span>(turma)
+
+<span class="c"># média: 7.33
+# aprovados: ['Ana', 'Carla']</span></pre>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide">
+    <div class="kicker">O teste que fecha a manhã</div>
+    <h2>Embaralhem a turma inteira</h2>
+<pre class="good">random.shuffle(turma)
+
+<span class="c">Bruno  4.0
+Carla  9.5
+Ana    8.5</span></pre>
+    <p class="lead">A ordem mudou. <strong>As notas foram junto.</strong></p>
+    <p class="dim">Era isso que estava quebrado às dez da manhã.</p>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide center">
+    <h1>A lista guarda ordem.<br>O dicionário guarda <span class="hl">nome</span>.</h1>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide center">
+    <h1>JSON</h1>
+    <p class="lead">Um dicionário só existe <strong>dentro</strong> do Python.</p>
+    <p class="lead dim">Para mandar pela internet ou salvar num arquivo,<br>ele precisa virar <strong>texto</strong>.</p>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide">
+    <div class="kicker">dict → texto</div>
+    <h2><code>json.dumps</code></h2>
+<pre style="font-size:2.2vh">aluno = {<span class="s">"nome"</span>: <span class="s">"Ana"</span>, <span class="s">"aprovado"</span>: <span class="k">True</span>}
+json.dumps(aluno)
+
+<span class="c">{"nome": "Ana", "aprovado": <span class="hl">true</span>}
+&lt;class 'str'&gt;</span></pre>
+    <p class="dim">Parece igual, mas <strong>é uma string</strong>.<br>E o <code>True</code> virou <code>true</code>, minúsculo.</p>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide center">
+    <span class="tag">Escrevam no caderno</span>
+<pre style="font-size:2.3vh">dict → <span class="hl">json.dumps</span> → texto → <span class="hl">json.loads</span> → dict</pre>
+    <p class="lead" style="margin-top:1.5vh"><code>dumps</code> escreve. <code>loads</code> lê.</p>
+    <p class="dim">O <code>s</code> no fim é de <em>string</em>.</p>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 3</div>
+    <h2>Aspas simples não são JSON</h2>
+<pre class="err">json.loads(<span class="s">"{'nome': 'Ana'}"</span>)
+
+<span class="e">JSONDecodeError</span>: Expecting property
+name enclosed in double quotes</pre>
+    <p class="dim">Quase sempre a causa é a mesma: alguém colou um dicionário <strong>Python</strong> onde o programa esperava um <strong>JSON</strong>.</p>
+  </section>
+
+  <!-- 27 -->
+  <section class="slide">
+    <div class="kicker">As três diferenças que pegam</div>
+    <h2>Python vs JSON</h2>
+    <table>
+      <tr><th>Python</th><th>JSON</th></tr>
+      <tr><td class="mono">True / False</td><td class="mono">true / false</td></tr>
+      <tr><td class="mono">None</td><td class="mono">null</td></tr>
+      <tr><td>aspas simples ou duplas</td><td><strong>só duplas</strong></td></tr>
+    </table>
+  </section>
+
+  <!-- 28 -->
+  <section class="slide center">
+    <span class="tag ia">💊 Pílula de IA</span>
+    <h1>Toda API de IA<br>fala JSON</h1>
+  </section>
+
+  <!-- 29 -->
+  <section class="slide">
+    <div class="kicker">Etapa 1 · o que volta pela internet</div>
+    <h2>A resposta de um modelo</h2>
+<pre style="font-size:1.7vh">{
+  <span class="s">"model"</span>: <span class="s">"um-modelo-qualquer"</span>,
+  <span class="s">"choices"</span>: [
+    {
+      <span class="s">"index"</span>: <span class="k">0</span>,
+      <span class="s">"message"</span>: {
+        <span class="s">"role"</span>: <span class="s">"assistant"</span>,
+        <span class="s">"content"</span>: <span class="s">"Uma lista guarda ordem..."</span>
+      },
+      <span class="s">"finish_reason"</span>: <span class="s">"stop"</span>
+    }
+  ],
+  <span class="s">"usage"</span>: { <span class="s">"total_tokens"</span>: <span class="k">35</span> }
+}</pre>
+  </section>
+
+  <!-- 30 -->
+  <section class="slide center">
+    <h2>Neste momento isso é <strong>texto</strong>.</h2>
+    <p class="lead dim">Uma string gigante e inútil.</p>
+  </section>
+
+  <!-- 31 -->
+  <section class="slide">
+    <div class="kicker">Etapa 2 · uma linha</div>
+    <h2>E vira dicionário</h2>
+<pre class="good">r = json.loads(resposta_texto)
+
+<span class="k">list</span>(r.keys())
+<span class="c"># ['id', 'object', 'model', 'choices', 'usage']</span></pre>
+  </section>
+
+  <!-- 32 -->
+  <section class="slide">
+    <div class="kicker">Etapa 3 · navegue camada por camada</div>
+    <h2>Lista dentro de dicionário dentro de dicionário</h2>
+<pre style="font-size:2vh"><span class="k">type</span>(r[<span class="s">"choices"</span>])
+<span class="c"># &lt;class 'list'&gt;</span>
+
+<span class="k">len</span>(r[<span class="s">"choices"</span>])
+<span class="c"># 1</span>
+
+<span class="k">list</span>(r[<span class="s">"choices"</span>][<span class="k">0</span>].keys())
+<span class="c"># ['index', 'message', 'finish_reason']</span></pre>
+  </section>
+
+  <!-- 33 -->
+  <section class="slide center">
+<pre class="good" style="font-size:2.2vh">r[<span class="s">"choices"</span>][<span class="k">0</span>][<span class="s">"message"</span>][<span class="s">"content"</span>]</pre>
+    <h2 style="margin-top:1.5vh">"Uma lista guarda ordem;<br>um dicionário guarda nome."</h2>
+    <p class="lead" style="color:var(--accent)">Aquilo ali é a resposta da IA.</p>
+  </section>
+
+  <!-- 34 -->
+  <section class="slide">
+    <div class="kicker">A linha de todo tutorial de IA</div>
+    <h2>Sem mistério nenhum</h2>
+<pre style="font-size:1.9vh">resposta[<span class="s">"choices"</span>][<span class="k">0</span>][<span class="s">"message"</span>][<span class="s">"content"</span>]
+         │         │        │          │
+         <span class="c">│         │        │          └ o texto
+         │         │        └──────────── dicionário
+         │         └───────────────────── o 1º item
+         └─────────────────────────────── uma LISTA</span></pre>
+    <p class="dim">Vocês aprenderam as duas coisas hoje e sábado passado.</p>
+  </section>
+
+  <!-- 35 -->
+  <section class="slide">
+    <div class="kicker">Etapa 4 · a Aula 5 cobrando a conta</div>
+    <h2><code>usage</code></h2>
+<pre style="font-size:2.3vh"><span class="c">tokens que EU mandei : 24
+tokens que ELE gerou : 11
+total                : 35
+
+esta chamada: US$ 0.000105
+mil chamadas: US$ 0.10</span></pre>
+    <p class="dim">São os tokens da Aula 5 — os mesmos que fizeram <code>gato</code> virar <code>['g', 'ato']</code>.<br><em>(o preço é só um exemplo; muda o tempo todo)</em></p>
+  </section>
+
+  <!-- 36 -->
+  <section class="slide">
+    <div class="kicker">Etapa 5 · e o que você MANDA também é JSON</div>
+    <h2>Aquele <code>role</code> / <code>content</code> de todo tutorial</h2>
+<pre style="font-size:1.9vh">{
+  <span class="s">"messages"</span>: [
+    {<span class="s">"role"</span>: <span class="s">"system"</span>, <span class="s">"content"</span>: <span class="s">"Voce e professor."</span>},
+    {<span class="s">"role"</span>: <span class="s">"user"</span>,   <span class="s">"content"</span>: <span class="s">"O que e um dict?"</span>}
+  ],
+  <span class="s">"temperature"</span>: <span class="k">0.7</span>
+}</pre>
+    <p class="lead">Uma <strong>lista de dicionários</strong>. A estrutura da turma.</p>
+  </section>
+
+  <!-- 37 -->
+  <section class="slide center">
+    <h1>É assim que o modelo<br>"lembra" da conversa:</h1>
+    <h1 style="color:var(--accent)">ele não lembra.</h1>
+    <p class="lead dim" style="margin-top:1.5vh">Você reenvia a lista inteira toda vez.<br>Por isso conversa longa fica mais cara.</p>
+  </section>
+
+  <!-- 38 -->
+  <section class="slide">
+    <div class="kicker">Guardem estas três</div>
+    <h2>O que fica da pílula de hoje</h2>
+    <ul>
+      <li class="n1"><strong>API de IA é JSON entrando e JSON saindo.</strong> Vocês já sabem ler e escrever os dois.</li>
+      <li class="n2"><strong>Aquela linha assustadora é só</strong> chave, índice, chave, chave.</li>
+      <li class="n3"><strong>O modelo não tem memória.</strong> O histórico é uma lista de dicionários que <em>vocês</em> reenviam.</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">Falta uma peça só: como mandar isso pela internet. É a <strong>Aula 12</strong>.</p>
+  </section>
+
+  <!-- 39 -->
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><strong>Agenda de contatos:</strong> lista de dicionários, com <code>buscar()</code> e <code>de_cidade()</code></li>
+      <li class="n2"><strong>Refatorar o boletim</strong> — uma lista de dicionários no lugar das duas listas</li>
+      <li class="n3"><strong>Ler a resposta da IA:</strong> imprimir o texto, o modelo e o total de tokens</li>
+      <li><strong>Desafio:</strong> <code>contar_palavras(frase)</code> devolvendo um dicionário. É o coração do detector de spam da Aula 3.</li>
+    </ul>
+  </section>
+
+  <!-- 40 -->
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h1>Fechem o Colab agora.<br>Abram de novo.</h1>
+  </section>
+
+  <!-- 41 -->
+  <section class="slide center">
+    <h2>Cadê a agenda de contatos?<br>Cadê a turma?<br>Cadê tudo que vocês digitaram?</h2>
+    <h1 style="color:var(--err);margin-top:1.5vh">Sumiu.</h1>
+  </section>
+
+  <!-- 42 -->
+  <section class="slide center">
+    <p class="lead">Sete aulas de coisa que viveu só na <strong>memória</strong>.</p>
+    <p class="lead dim">E memória morre quando o programa fecha.</p>
+    <h1 style="margin-top:1.5vh">Como é que o dado<br><span class="hl">sobrevive</span>?</h1>
+  </section>
+
+  <!-- 43 -->
+  <section class="slide center">
+    <h1>Semana que vem<br>o Python sai do navegador</h1>
+    <p class="lead">Arquivos — e instalação na <strong>máquina de vocês</strong>.</p>
+    <p class="lead dim">Tragam o notebook carregado.<br>Vamos instalar coisa.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
