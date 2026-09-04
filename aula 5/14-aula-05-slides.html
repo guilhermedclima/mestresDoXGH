@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 5</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,62ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)} .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex; gap:2.5vw; flex-wrap:wrap; width:100%; align-items:flex-start}
+  .col{flex:1 1 0; min-width:250px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:2.1vh; max-width:none; width:100%}
+  .card{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh}
+  .card .t{font-size:2.2vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.9vh; color:var(--dim); line-height:1.4}
+  .card .m{font-size:2.4vh; font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--fg)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{border-left:4px solid var(--accent); padding-left:2.4vh; font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch}
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .center pre{text-align:left}
+  .tag{display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--bg); background:var(--accent); padding:.4em .9em; border-radius:100px}
+  .tag.ia{background:var(--accent2); color:#fff}
+
+  table{border-collapse:collapse; font-size:2.4vh}
+  td,th{padding:1.1vh 2vh; border-bottom:1px solid var(--border); text-align:left}
+  th{color:var(--accent); font-size:1.9vh; letter-spacing:.06em; text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--accent2); font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 5</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 5 · 12 de setembro</div>
+    <h1>Listas e strings</h1>
+    <p class="lead dim">Hoje a gente abre o saco de coisas.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Semana passada</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes"><code>for</code> percorre · <code>range</code> conta</li>
+      <li class="yes">O acumulador — e ele nasce <strong>antes</strong> do laço</li>
+      <li class="yes"><code>while</code>, o loop infinito e o botão de parar</li>
+      <li class="yes">Treinar é repetir: um <code>for</code> que ajusta um número</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">E ficou <strong>uma pergunta em aberto.</strong></p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide center">
+    <div class="kicker">A pergunta em aberto</div>
+    <h1>O <code>for</code> só sabe andar<br>do começo ao fim.</h1>
+    <p class="lead">E se eu quiser o <strong>maior</strong> salário?</p>
+    <p class="lead dim">Ou o terceiro? Ou ordenar?</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="kicker">Vocês já sabiam fazer</div>
+    <h2>O maior, com o que vocês têm</h2>
+<pre class="good">salarios = [<span class="k">2800</span>, <span class="k">4500</span>, <span class="k">1900</span>, <span class="k">7200</span>, <span class="k">3100</span>, <span class="k">5600</span>]
+
+maior = salarios[<span class="k">0</span>]
+<span class="k">for</span> salario <span class="k">in</span> salarios:
+    <span class="k">if</span> salario &gt; maior:
+        maior = salario
+
+<span class="c"># 7200</span></pre>
+    <p class="dim">É o <strong>acumulador</strong> de sábado passado. Em vez de somar, guarda o maior até agora.</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <div class="kicker">E hoje</div>
+    <h2>Cinco perguntas, cinco linhas</h2>
+<pre style="font-size:2.3vh"><span class="k">max</span>(salarios)                    <span class="c"># 7200</span>
+<span class="k">min</span>(salarios)                    <span class="c"># 1900</span>
+<span class="k">sum</span>(salarios)                    <span class="c"># 25100</span>
+salarios[<span class="k">2</span>]                      <span class="c"># 1900  ← o terceiro</span>
+<span class="k">sorted</span>(salarios, reverse=<span class="k">True</span>)   <span class="c"># do maior pro menor</span></pre>
+    <p class="quote" style="font-size:2.7vh;margin-top:1vh">Não joguem fora o laço do slide anterior. Saber fazer na mão é o que faz vocês entenderem o que o <code>max()</code> faz por dentro.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">Pedir pela posição</div>
+    <h2>Índice</h2>
+<pre>alunos = [<span class="s">"Ana"</span>, <span class="s">"Bruno"</span>, <span class="s">"Carla"</span>, <span class="s">"Diego"</span>, <span class="s">"Elis"</span>]
+
+alunos[<span class="k">0</span>]     <span class="c"># Ana    — o primeiro</span>
+alunos[<span class="k">2</span>]     <span class="c"># Carla  — o terceiro</span>
+alunos[<span class="k">-1</span>]    <span class="c"># Elis   — o último</span></pre>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide center">
+    <h2>Guardem este desenho</h2>
+<pre style="font-size:2.4vh"> Ana   Bruno   Carla   Diego   Elis
+<span class="hl">  0      1       2       3       4</span>
+<span class="c"> -5     -4      -3      -2      -1</span></pre>
+    <p class="lead">A contagem começa no <strong>zero</strong>.</p>
+    <p class="lead dim">Negativo conta de trás para frente.<br><code>[-1]</code> é sempre o último.</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 1</div>
+    <h2>A lista tem 5 nomes.<br>Peça o quinto.</h2>
+<pre class="err">alunos[<span class="k">5</span>]
+
+<span class="e">IndexError</span>: list index out of range</pre>
+    <p class="lead">São 5 itens, mas o último índice é <strong>4</strong>.</p>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.4vh;max-width:36ch"><code>IndexError</code> quer dizer sempre a mesma coisa:<br><br>você pediu uma posição<br>que não existe.</p>
+    <p class="dim" style="margin-top:2vh">Na dúvida, imprima <code>len(lista)</code> antes.<br>O último é sempre <code>len(lista) - 1</code>.</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">Pedir um pedaço</div>
+    <h2>Fatiamento</h2>
+<pre style="font-size:2.3vh">alunos[<span class="k">1</span>:<span class="k">3</span>]     <span class="c"># ['Bruno', 'Carla']</span>
+alunos[:<span class="k">2</span>]      <span class="c"># ['Ana', 'Bruno']</span>
+alunos[<span class="k">2</span>:]      <span class="c"># ['Carla', 'Diego', 'Elis']</span>
+alunos[<span class="k">-2</span>:]     <span class="c"># ['Diego', 'Elis']</span></pre>
+    <p class="dim">Começo <code>:</code> fim</p>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide center">
+    <h1>O fim <span class="hl">não entra</span></h1>
+    <p class="lead">É a mesma regra do <code>range(1, 5)</code><br>que mordeu vocês semana passada.</p>
+    <p class="lead dim"><code>[1:3]</code> é <em>"comece no 1 e vá até chegar no 3"</em>.<br>Quando chega no 3, para.</p>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide center">
+    <span class="tag">Exercício 1</span>
+    <h2>Com a lista de alunos, imprima:</h2>
+    <ul>
+      <li class="n1">o segundo aluno</li>
+      <li class="n2">os três primeiros</li>
+      <li class="n3">o último</li>
+      <li>do terceiro em diante</li>
+    </ul>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <div class="kicker">Lista não é só para ler</div>
+    <h2>Mexendo na lista</h2>
+<pre style="font-size:2.3vh">turma = [<span class="s">"Ana"</span>, <span class="s">"Bruno"</span>]
+
+turma.append(<span class="s">"Carla"</span>)      <span class="c"># põe no fim</span>
+turma.insert(<span class="k">1</span>, <span class="s">"Zeca"</span>)    <span class="c"># põe na posição 1</span>
+turma.remove(<span class="s">"Bruno"</span>)      <span class="c"># tira pelo VALOR</span></pre>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide center">
+    <div class="kicker">Vocabulário do dia</div>
+<pre style="font-size:3vh">turma<span class="hl">.</span>append(<span class="s">"Carla"</span>)</pre>
+    <h2 style="margin-top:1vh">"turma, acrescente"</h2>
+    <p class="lead">Coisas que a lista sabe fazer<br>com ela mesma têm nome:</p>
+    <h1 style="color:var(--accent)">método</h1>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide">
+    <div class="kicker">Duas velhas conhecidas</div>
+    <h2>Ainda funcionam</h2>
+<pre><span class="k">len</span>(turma)        <span class="c"># quantos itens</span>
+<span class="s">"Ana"</span> <span class="k">in</span> turma    <span class="c"># está aí dentro?</span></pre>
+    <p class="dim">O <code>in</code> é o mesmo da Aula 3, o do detector de spam.</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <div class="kicker">Ordenar</div>
+    <h2><code>sorted()</code> devolve uma lista nova</h2>
+<pre style="font-size:2.3vh">notas = [<span class="k">7</span>, <span class="k">4</span>, <span class="k">9</span>, <span class="k">6</span>, <span class="k">10</span>]
+
+<span class="k">sorted</span>(notas)                 <span class="c"># [4, 6, 7, 9, 10]</span>
+<span class="k">sorted</span>(notas, reverse=<span class="k">True</span>)   <span class="c"># [10, 9, 7, 6, 4]</span>
+
+<span class="k">print</span>(notas)
+<span class="c"># [7, 4, 9, 6, 10]  ← não mudou!</span></pre>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 2</div>
+    <h2>O bug mais caro de hoje</h2>
+<pre class="err">notas = [<span class="k">7</span>, <span class="k">4</span>, <span class="k">9</span>]
+<span class="e">notas = notas.sort()</span>
+
+<span class="k">print</span>(notas)
+<span class="c">→</span> <span class="e">None</span></pre>
+    <p class="lead">A lista <strong>sumiu</strong>. E não deu erro.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide">
+    <div class="kicker">O erro só aparece depois</div>
+    <h2>Três linhas adiante</h2>
+<pre class="err"><span class="k">len</span>(notas)
+
+<span class="e">TypeError</span>: object of type
+<span class="s">'NoneType'</span> has no len()</pre>
+    <p class="dim">O <code>.sort()</code> ordena e <strong>não devolve nada</strong>.<br>Você jogou esse nada por cima da sua lista.</p>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide center">
+    <span class="tag">Escrevam no caderno</span>
+<pre class="good" style="font-size:2.4vh"><span class="k">sorted</span>(lista)   → <span class="hl">DEVOLVE</span> lista nova → guarde
+lista.sort()    → <span class="hl">MUDA</span> a lista      → não guarde</pre>
+    <p class="lead" style="margin-top:1.5vh">Nunca as duas coisas ao mesmo tempo.</p>
+    <p class="dim">Guardem — isso volta em vinte minutos, com texto.</p>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.</p>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide center">
+    <span class="tag">A virada da aula</span>
+    <h1>String também é<br>uma sequência</h1>
+    <p class="lead">Tudo que vocês fizeram com lista<br>funciona com texto.</p>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide">
+    <div class="kicker">Os mesmos colchetes</div>
+    <h2>Uma string é uma sequência de caracteres</h2>
+<pre>nome = <span class="s">"Guilherme"</span>
+
+nome[<span class="k">0</span>]      <span class="c"># G</span>
+nome[<span class="k">-1</span>]     <span class="c"># e</span>
+nome[<span class="k">0</span>:<span class="k">4</span>]    <span class="c"># Guil</span>
+<span class="k">len</span>(nome)    <span class="c"># 9</span></pre>
+    <p class="dim">Mesma contagem do zero. Mesmo fim que não entra.</p>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide">
+    <div class="kicker">E os métodos dela</div>
+    <h2>Strings sabem coisas</h2>
+<pre style="font-size:2.3vh"><span class="s">"guilherme"</span>.upper()          <span class="c"># GUILHERME</span>
+<span class="s">"GUILHERME"</span>.lower()          <span class="c"># guilherme</span>
+<span class="s">"  com espaço  "</span>.strip()     <span class="c"># com espaço</span>
+<span class="s">"XGH"</span>.replace(<span class="s">"H"</span>, <span class="s">"!"</span>)      <span class="c"># XG!</span></pre>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 3</div>
+    <h2>Se é sequência, eu troco uma letra, né?</h2>
+<pre class="err">nome = <span class="s">"guilherme"</span>
+nome[<span class="k">0</span>] = <span class="s">"G"</span>
+
+<span class="e">TypeError</span>: <span class="s">'str'</span> object does not
+support item assignment</pre>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide center">
+    <h1>String é <span class="hl">imutável</span></h1>
+    <p class="lead">Ela não muda. Nunca.</p>
+    <p class="lead dim">Você só consegue criar uma nova.</p>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide">
+    <div class="kicker">E por isso</div>
+    <h2>Isto não faz o que parece</h2>
+<pre class="err">nome = <span class="s">"guilherme"</span>
+nome.upper()
+<span class="k">print</span>(nome)
+
+<span class="c">→ guilherme</span>   <span class="e">← minúsculo!</span></pre>
+    <p>O <code>.upper()</code> <strong>devolveu</strong> a versão maiúscula. Você jogou fora.</p>
+  </section>
+
+  <!-- 27 -->
+  <section class="slide">
+    <div class="kicker">Para ficar, tem que guardar</div>
+    <h2>Assim</h2>
+<pre class="good">nome = nome.upper()
+<span class="k">print</span>(nome)
+
+<span class="c">→ GUILHERME</span></pre>
+    <p class="dim">É o irmão gêmeo do bug do <code>.sort()</code>.</p>
+  </section>
+
+  <!-- 28 -->
+  <section class="slide">
+    <div class="kicker">A regra que junta os dois erros de hoje</div>
+    <h2>Muda ou devolve?</h2>
+    <table>
+      <tr><th>O que</th><th>Faz</th><th>Guarda?</th></tr>
+      <tr><td class="mono">lista.append()<br>lista.sort()</td><td><strong>muda</strong> a lista</td><td>não</td></tr>
+      <tr><td class="mono">sorted(l)<br>texto.upper()</td><td><strong>devolve</strong> algo novo</td><td><strong>sim</strong></td></tr>
+    </table>
+  </section>
+
+  <!-- 29 -->
+  <section class="slide center">
+    <h1>Lista muda.<br>String <span class="hl">nunca</span> muda.</h1>
+    <p class="lead">Quando um método "não funcionou",<br>a primeira pergunta é:</p>
+    <p class="lead" style="color:var(--accent)">ele muda ou devolve?</p>
+  </section>
+
+  <!-- 30 -->
+  <section class="slide">
+    <div class="kicker">Prestem atenção — voltam na pílula</div>
+    <h2><code>split</code> parte · <code>join</code> cola</h2>
+<pre style="font-size:2.2vh">frase = <span class="s">"programar e a arte de resolver"</span>
+
+frase.split()                  <span class="c"># texto → lista</span>
+<span class="c"># ['programar', 'e', 'a', 'arte', 'de', 'resolver']</span>
+
+<span class="s">"-"</span>.join([<span class="s">"a"</span>, <span class="s">"b"</span>, <span class="s">"c"</span>])        <span class="c"># lista → texto → a-b-c</span></pre>
+    <p class="dim">A ponte entre texto e lista.</p>
+  </section>
+
+  <!-- 31 -->
+  <section class="slide">
+    <span class="tag">Mão na massa · parte A</span>
+    <h2>O boletim da turma</h2>
+<pre class="good" style="font-size:2.1vh"><span class="c">Média da turma: 7.10
+Maior nota: 9.5  |  Menor: 4.0
+
+Ana        8.5  aprovado
+Bruno      4.0  reprovado
+Carla      9.5  aprovado
+
+Aprovados: 3 de 5
+Top 3: [9.5, 8.5, 7.5]</span></pre>
+  </section>
+
+  <!-- 32 -->
+  <section class="slide">
+    <div class="kicker">O truque a guardar</div>
+    <h2>Andar em duas listas ao mesmo tempo</h2>
+<pre><span class="k">for</span> i <span class="k">in</span> <span class="k">range</span>(<span class="k">len</span>(nomes)):
+    <span class="k">if</span> notas[i] &gt;= <span class="k">7</span>:
+        <span class="k">print</span>(nomes[i], <span class="s">"aprovado"</span>)</pre>
+    <p class="lead">O <code>i</code> serve de posição <strong>nas duas</strong>.</p>
+    <p class="dim">Aparece muito. Guardem.</p>
+  </section>
+
+  <!-- 33 -->
+  <section class="slide">
+    <span class="tag">Mão na massa · parte B</span>
+    <h2>O acumulador, agora com texto</h2>
+<pre>iniciais = <span class="s">""</span>
+<span class="k">for</span> p <span class="k">in</span> palavras:
+    iniciais += p[<span class="k">0</span>].upper()
+
+<span class="c"># PEAADRPCC</span></pre>
+    <p class="lead">Mesma ideia de sábado passado.</p>
+    <p class="dim">Mudou o tipo, não a ideia. É assim que uma ferramenta boa se paga.</p>
+  </section>
+
+  <!-- 34 -->
+  <section class="slide center">
+    <span class="tag ia">💊 Pílula de IA</span>
+    <h1>Você acabou de escrever<br>um tokenizador</h1>
+    <p class="lead dim">Um modelo não lê frase.<br>Ele lê <strong>pedaços</strong>.</p>
+  </section>
+
+  <!-- 35 -->
+  <section class="slide">
+    <div class="kicker">Etapa 1</div>
+    <h2>Partir texto em pedaços tem nome</h2>
+<pre>frase = <span class="s">"o curso e gratis para os alunos"</span>
+frase.split()
+
+<span class="c"># ['o', 'curso', 'e', 'gratis',
+#  'para', 'os', 'alunos']</span></pre>
+    <p class="lead">Isso é <strong>tokenização</strong>.</p>
+    <p class="dim">É o primeiro passo de qualquer modelo que lida com texto.</p>
+  </section>
+
+  <!-- 36 -->
+  <section class="slide">
+    <div class="kicker">Etapa 2</div>
+    <h2>Agora quebrem o de vocês</h2>
+<pre class="err"><span class="s">"Gato!"</span>.split()    <span class="c"># ['Gato!']</span>
+<span class="s">"gato"</span>.split()     <span class="c"># ['gato']</span>
+<span class="s">"gato,"</span>.split()    <span class="c"># ['gato,']</span></pre>
+    <p class="lead">Três coisas <strong>completamente diferentes</strong>.</p>
+  </section>
+
+  <!-- 37 -->
+  <section class="slide center">
+    <h2>E se cada palavra<br>for um item do vocabulário?</h2>
+    <ul style="margin-top:1vh">
+      <li>400 mil palavras em português</li>
+      <li>mais plurais, conjugações, nomes próprios</li>
+      <li>mais <code>kkkkk</code> e o que a internet inventar amanhã</li>
+    </ul>
+    <p class="lead" style="margin-top:1.5vh;color:var(--accent)">O vocabulário nunca fecha.</p>
+  </section>
+
+  <!-- 38 -->
+  <section class="slide center">
+    <div class="kicker">Etapa 3 · a saída</div>
+    <h1>Não parta em palavras.<br>Parta em <span class="hl">pedaços</span>.</h1>
+    <p class="lead dim">Comece com as letras soltas.<br>Junte o par que mais aparece. Repita.</p>
+    <p class="lead">Um <code>for</code>, um contador, um <code>max</code>.</p>
+  </section>
+
+  <!-- 39 -->
+  <section class="slide">
+    <div class="kicker">Rodando num corpus de gatos e ratos</div>
+    <h2>Ele vai juntando</h2>
+<pre class="good" style="font-size:2.1vh"><span class="c">passo 1: junta 'a' + 't'   -> 'at'    (9x)
+passo 2: junta 'g' + 'at'  -> 'gat'   (6x)
+passo 3: junta 'o' + 'r'   -> 'or'    (6x)
+passo 4: junta 'm' + 'e'   -> 'me'    (6x)
+passo 5: junta 'gat' + 'o' -> 'gato'  (3x)
+passo 6: junta 'd' + 'or'  -> 'dor'   (3x)</span></pre>
+  </section>
+
+  <!-- 40 -->
+  <section class="slide">
+    <div class="kicker">E olhem como as palavras ficaram</div>
+    <h2>O soco</h2>
+<pre class="good" style="font-size:2.4vh"><span class="c">gato   -> ['gato']
+gata   -> [<span class="hl">'gat'</span>, 'a']
+rato   -> ['r', 'at', 'o']</span></pre>
+    <p class="lead"><code>gata</code> e <code>gato</code> <strong>compartilham o <code>gat</code></strong>.</p>
+    <p class="dim">Ninguém ensinou português para ele.</p>
+  </section>
+
+  <!-- 41 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.2vh;max-width:38ch">Ele só viu que aqueles caracteres andavam juntos — e economizou.</p>
+    <p class="lead" style="margin-top:2vh">Isso se chama <strong>BPE</strong>,<br>e é o algoritmo que o GPT usa.</p>
+    <p class="dim">Vocês acabaram de rodar a versão de brinquedo.</p>
+  </section>
+
+  <!-- 42 -->
+  <section class="slide">
+    <div class="kicker">Etapa 4 · o tokenizador de verdade</div>
+    <h2>O mesmo que roda no ChatGPT</h2>
+<pre style="font-size:2.1vh"><span class="c">gato          -> 2 tokens: ['g', 'ato']
+cachorro      -> 3 tokens: ['c', 'ach', 'orro']
+sábado        -> 2 tokens: ['s', 'ábado']
+programação   -> 2 tokens: ['program', 'ação']</span></pre>
+    <p class="lead"><code>gato</code>. Quatro letras. <strong>Dois tokens.</strong></p>
+  </section>
+
+  <!-- 43 -->
+  <section class="slide center">
+    <h2>Por quê?</h2>
+    <p class="lead">Esse tokenizador foi treinado<br>quase todo em <strong>inglês</strong>.</p>
+    <p class="lead dim">Ele nunca viu português suficiente<br>para achar que valia guardar<br><code>gato</code> inteiro.</p>
+  </section>
+
+  <!-- 44 -->
+  <section class="slide">
+    <div class="kicker">E isso tem preço. Literalmente.</div>
+    <h2>A mesma frase</h2>
+<pre style="font-size:2.4vh"><span class="c">PT: 10 palavras -> <span class="hl">12 tokens</span>
+EN:  9 palavras -> <span class="hl">10 tokens</span></span></pre>
+    <p class="lead">"O curso de programação começa às dez horas de sábado"</p>
+    <p class="dim">vs. a mesma coisa em inglês.</p>
+  </section>
+
+  <!-- 45 -->
+  <section class="slide">
+    <div class="kicker">Etapa 5 · por que importa para vocês</div>
+    <h2>Três consequências</h2>
+    <ul>
+      <li class="n1"><strong>A API cobra por token.</strong> O mesmo texto em português custa mais caro. Não é impressão.</li>
+      <li class="n2"><strong>O limite de contexto é em token.</strong> "128 mil tokens" é bem menos texto em português.</li>
+      <li class="n3"><strong>O modelo nunca vê a sua letra.</strong> Vê esses pedaços virarem número.</li>
+    </ul>
+  </section>
+
+  <!-- 46 -->
+  <section class="slide">
+    <div class="kicker">Guardem estas três</div>
+    <h2>O que fica da pílula de hoje</h2>
+    <ul>
+      <li class="n1"><strong>Tokenizar é partir texto em pedaços.</strong> Vocês fizeram com <code>.split()</code>.</li>
+      <li class="n2"><strong>Partir em palavras não escala</strong> — o vocabulário nunca fecha.</li>
+      <li class="n3"><strong>Partir em pedaços frequentes escala</strong> — e quem escolhe os pedaços é a contagem. Igual à Aula 3: <em>os dados escreveram</em>.</li>
+    </ul>
+  </section>
+
+  <!-- 47 -->
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><strong>Boletim seu:</strong> média, <strong>o nome</strong> de quem tirou a maior nota, e os aprovados</li>
+      <li class="n2"><strong>Contador de palavras:</strong> quantas, qual a maior, e a frase invertida</li>
+      <li class="n3"><strong>Analisador de senha:</strong> quantas letras, quantos números, e se tem 8+</li>
+      <li><strong>Desafio:</strong> dizer se uma palavra é <strong>palíndromo</strong> — <code>arara</code>, <code>radar</code>. Tem solução de uma linha.</li>
+    </ul>
+  </section>
+
+  <!-- 48 -->
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h2>No boletim, no contador de palavras<br>e na tarefa vocês escreveram<br>o <strong>mesmo bloco</strong>:</h2>
+    <p class="lead">percorre, compara, guarda o maior.</p>
+    <p class="lead dim" style="margin-top:1.5vh">Três vezes, em três lugares.</p>
+  </section>
+
+  <!-- 49 -->
+  <section class="slide center">
+    <h1>E quando a regra mudar?</h1>
+    <p class="lead">Digamos que aprovado passe a ser <strong>6</strong>, e não 7.</p>
+    <p class="lead" style="color:var(--accent)">Vocês vão lembrar dos três lugares?<br>Vão achar todos?</p>
+  </section>
+
+  <!-- 50 -->
+  <section class="slide center">
+    <h1>Hoje vocês abriram<br>o saco de coisas</h1>
+    <p class="lead">Semana que vem vocês vão <strong>dar nome</strong><br>a pedaços de código e parar de repetir.</p>
+    <p class="lead dim">E no fim da aula sai o <strong>Projeto 1</strong>:<br>um jogo que funciona.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
