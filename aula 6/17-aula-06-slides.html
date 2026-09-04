@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 6</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,62ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)} .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex; gap:2.5vw; flex-wrap:wrap; width:100%; align-items:flex-start}
+  .col{flex:1 1 0; min-width:250px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:2.1vh; max-width:none; width:100%}
+  .card{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh}
+  .card .t{font-size:2.2vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.9vh; color:var(--dim); line-height:1.4}
+  .card .m{font-size:2.4vh; font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--fg)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{border-left:4px solid var(--accent); padding-left:2.4vh; font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch}
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .center pre{text-align:left}
+  .tag{display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--bg); background:var(--accent); padding:.4em .9em; border-radius:100px}
+  .tag.ia{background:var(--accent2); color:#fff}
+
+  table{border-collapse:collapse; font-size:2.4vh}
+  td,th{padding:1.1vh 2vh; border-bottom:1px solid var(--border); text-align:left}
+  th{color:var(--accent); font-size:1.9vh; letter-spacing:.06em; text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--accent2); font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 6</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 6 · 19 de setembro</div>
+    <h1>Funções</h1>
+    <p class="lead dim">Dar nome a um pedaço de código.</p>
+    <p class="lead" style="color:var(--accent)">E hoje sai o <strong>Projeto 1</strong>.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Semana passada</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes">Índice e fatiamento — e o fim que não entra</li>
+      <li class="yes">Lista muda, string nunca muda</li>
+      <li class="yes"><code>split</code> parte, <code>join</code> cola</li>
+      <li class="yes">Tokenizar é partir texto em pedaços frequentes</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">E ficou <strong>uma pergunta em aberto.</strong></p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="kicker">A pergunta em aberto</div>
+    <h2>Vocês escreveram isto três vezes</h2>
+<pre class="err" style="font-size:1.9vh">maior = notas[<span class="k">0</span>]
+<span class="k">for</span> item <span class="k">in</span> notas:
+    <span class="k">if</span> item &gt; maior: maior = item
+
+maior = salarios[<span class="k">0</span>]
+<span class="k">for</span> item <span class="k">in</span> salarios:
+    <span class="k">if</span> item &gt; maior: maior = item
+
+maior = palavras[<span class="k">0</span>]
+<span class="k">for</span> item <span class="k">in</span> palavras:
+    <span class="k">if</span> <span class="k">len</span>(item) &gt; <span class="k">len</span>(maior): maior = item</pre>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide center">
+    <h1>O que muda de um<br>bloco para o outro?</h1>
+    <p class="lead dim">(pensem antes de eu falar)</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide center">
+    <p class="lead dim">Só a lista.</p>
+    <h2>Na Aula 4 vocês viram: quando só um<br><strong>número</strong> muda, o <code>for</code> resolve.</h2>
+    <h2 style="margin-top:1.5vh">Agora o que se repete é um<br><strong>bloco inteiro</strong>.</h2>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">A ferramenta de hoje</div>
+    <h2>Três blocos viram um</h2>
+<pre class="good" style="font-size:2.2vh"><span class="k">def</span> maior_de(lista):
+    maior = lista[<span class="k">0</span>]
+    <span class="k">for</span> item <span class="k">in</span> lista:
+        <span class="k">if</span> item &gt; maior:
+            maior = item
+    <span class="k">return</span> maior
+
+maior_de(notas)      <span class="c"># 9.5</span>
+maior_de(salarios)   <span class="c"># 7200</span></pre>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide center">
+    <div class="kicker">Mas a pergunta era outra</div>
+    <h1>E no dia em que<br>a regra mudar?</h1>
+    <p class="lead">Aprovado passa a ser <strong>6</strong>, e não 7.</p>
+    <p class="lead dim">Vocês vão lembrar dos três lugares?</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">A regra mora num lugar só</div>
+    <h2>Parâmetro com valor padrão</h2>
+<pre class="good" style="font-size:2.2vh"><span class="k">def</span> situacao(nota, <span class="hl">corte=7</span>):
+    <span class="k">if</span> nota &gt;= corte:
+        <span class="k">return</span> <span class="s">"aprovado"</span>
+    <span class="k">else</span>:
+        <span class="k">return</span> <span class="s">"reprovado"</span>
+
+situacao(<span class="k">8.5</span>)            <span class="c"># aprovado</span>
+situacao(<span class="k">6.0</span>)            <span class="c"># reprovado</span>
+situacao(<span class="k">6.0</span>, corte=<span class="k">6</span>)   <span class="c"># aprovado</span></pre>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.8vh;max-width:34ch">Função não é para escrever menos.<br><br>É para ter <strong>um lugar só</strong> onde mexer.</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">Anatomia</div>
+    <h2>As partes</h2>
+<pre style="font-size:2.1vh"><span class="k">def</span>  saudacao (nome) :
+ │       │       │   <span class="c">└── dois pontos</span>
+ │       │       <span class="c">└────── PARÂMETRO: o que entra</span>
+ │       <span class="c">└────────────── NOME</span>
+ <span class="c">└────────────────────── "define"</span>
+
+    <span class="k">return</span> f<span class="s">"Olá, {nome}!"</span>
+      <span class="c">└── o que SAI</span></pre>
+    <p class="dim">Dois pontos e indentação: as mesmas do <code>if</code> e do <code>for</code>.</p>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide center">
+    <h1>Definir <span class="hl">não</span> executa</h1>
+    <p class="lead">O <code>def</code> sozinho não faz nada.</p>
+    <p class="lead dim">É uma receita guardada.<br>Só acontece quando alguém <strong>chama</strong>.</p>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide center">
+    <span class="tag">Dívida paga</span>
+    <h2>Vocês já viram <code>def</code> três vezes</h2>
+    <ul style="margin-top:1vh">
+      <li>Aula 3 — o <code>eh_spam</code></li>
+      <li>Aula 4 — o <code>erro_total</code> da pílula</li>
+      <li>Aula 5 — o mini-BPE</li>
+    </ul>
+    <p class="lead" style="margin-top:1.5vh">E eu sempre disse "isso é da Aula 6".</p>
+    <p class="lead" style="color:var(--accent)">Vocês já sabiam ler isso há três semanas.</p>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 1</div>
+    <h2>A confusão nº 1 de quem começa</h2>
+<pre style="font-size:2.2vh"><span class="k">def</span> dobro_errado(x):
+    <span class="k">print</span>(x * <span class="k">2</span>)
+
+<span class="k">def</span> dobro_certo(x):
+    <span class="k">return</span> x * <span class="k">2</span>
+
+a = dobro_errado(<span class="k">5</span>)   <span class="c"># a = None</span>
+b = dobro_certo(<span class="k">5</span>)    <span class="c"># b = 10</span></pre>
+    <p class="dim">As duas <strong>mostraram</strong> 10 na tela.</p>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide">
+    <div class="kicker">Mas quando você usa o resultado</div>
+    <h2>O buraco aparece</h2>
+<pre class="err">dobro_errado(<span class="k">5</span>) + <span class="k">1</span>
+
+<span class="e">TypeError</span>: unsupported operand
+type(s) for +: <span class="s">'NoneType'</span> and <span class="s">'int'</span></pre>
+    <p class="lead">Aquele <code>None</code> <strong>de novo</strong>.</p>
+    <p class="dim">O mesmo da Aula 5, quando <code>notas = notas.sort()</code> apagou a lista.</p>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide center">
+    <span class="tag">Escrevam no caderno</span>
+<pre class="good" style="font-size:2.8vh"><span class="k">print</span>  → para o <span class="hl">HUMANO</span> ver
+<span class="k">return</span> → para o <span class="hl">PROGRAMA</span> usar</pre>
+    <p class="lead" style="margin-top:1.5vh">Função sem <code>return</code> devolve <code>None</code>. Sempre.</p>
+    <p class="dim">A função calcula. Quem mostra é quem chamou.</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <div class="kicker">E mais uma coisa</div>
+    <h2><code>return</code> encerra a função</h2>
+<pre class="good"><span class="k">def</span> teste(n):
+    <span class="k">if</span> n &gt; <span class="k">10</span>:
+        <span class="k">return</span> <span class="s">"grande"</span>
+    <span class="k">return</span> <span class="s">"pequeno"</span></pre>
+    <p class="dim">Chegou no <code>return</code>, acabou. Nem precisa de <code>else</code>.</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 2</div>
+    <h2>Escopo</h2>
+<pre class="err"><span class="k">def</span> calcular():
+    resultado = <span class="k">42</span>
+    <span class="k">return</span> resultado
+
+calcular()
+<span class="k">print</span>(resultado)
+
+<span class="e">NameError</span>: name <span class="s">'resultado'</span>
+is not defined</pre>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide center">
+    <h1>O que nasce dentro,<br>morre dentro</h1>
+    <p class="lead">Por isso o <code>return</code> importa tanto:<br>ele é a <strong>única porta de saída</strong>.</p>
+    <p class="lead dim" style="margin-top:1.5vh">E isso não é chatice — é o que faz função ser útil.<br>Cada função é <strong>uma sala com a porta fechada</strong>.</p>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.</p>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide center">
+    <span class="tag">Projeto 1</span>
+    <h1>🎮 Jogo de adivinhação</h1>
+    <p class="lead">O primeiro programa de verdade de vocês.</p>
+    <p class="lead dim">Feito de funções pequenas,<br>cada uma com <strong>um trabalho só</strong>.</p>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide">
+    <div class="kicker">Passo 1 · as peças</div>
+    <h2>Três funções, três trabalhos</h2>
+<pre style="font-size:2vh"><span class="k">def</span> sortear():
+    <span class="k">return</span> random.randint(<span class="k">1</span>, <span class="k">100</span>)
+
+<span class="k">def</span> comparar(chute, segredo):
+    <span class="k">if</span> chute &lt; segredo:  <span class="k">return</span> <span class="s">"maior"</span>
+    <span class="k">elif</span> chute &gt; segredo: <span class="k">return</span> <span class="s">"menor"</span>
+    <span class="k">else</span>:                 <span class="k">return</span> <span class="s">"acertou"</span>
+
+<span class="k">def</span> avaliar(tentativas):
+    <span class="c"># Excelente / Muito bom / Conseguiu</span></pre>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide">
+    <div class="kicker">Teste as peças sozinhas</div>
+    <h2>Isso é conteúdo, não enrolação</h2>
+<pre class="good">comparar(<span class="k">30</span>, <span class="k">50</span>)   <span class="c"># maior</span>
+comparar(<span class="k">70</span>, <span class="k">50</span>)   <span class="c"># menor</span>
+comparar(<span class="k">50</span>, <span class="k">50</span>)   <span class="c"># acertou</span></pre>
+    <p class="quote" style="font-size:2.8vh;margin-top:1vh">Quando o programa é feito de funções, você acha o defeito <strong>na peça</strong> — não no programa inteiro.</p>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide">
+    <div class="kicker">Passo 2 · o jogo</div>
+    <h2>E ele se lê como português</h2>
+<pre style="font-size:1.9vh"><span class="k">def</span> jogar():
+    segredo = sortear()
+    tentativas = <span class="k">0</span>
+
+    <span class="k">while</span> <span class="k">True</span>:
+        chute = <span class="k">int</span>(<span class="k">input</span>(<span class="s">"Seu chute: "</span>))
+        tentativas += <span class="k">1</span>
+        resposta = comparar(chute, segredo)
+
+        <span class="k">if</span> resposta == <span class="s">"acertou"</span>:
+            <span class="k">print</span>(avaliar(tentativas))
+            <span class="k">break</span>
+        <span class="k">print</span>(f<span class="s">"O número é {resposta}."</span>)</pre>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide center">
+    <h1>Agora joguem<br>o jogo de vocês</h1>
+    <p class="lead dim">Isso não é mais exercício.<br>É um programa.</p>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide center">
+    <div class="kicker">Passo 3</div>
+    <h1>E se o computador<br>jogar contra si mesmo?</h1>
+    <p class="lead">Como o jogo é feito de funções,<br>dá para <strong>trocar o jogador</strong><br>sem mexer em mais nada.</p>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide">
+    <div class="kicker">Ele sempre chuta o meio</div>
+    <h2>O robô jogando</h2>
+<pre class="good" style="font-size:2vh"><span class="c">tentativa 1: chutei 50 -> maior
+tentativa 2: chutei 75 -> maior
+tentativa 3: chutei 88 -> menor
+tentativa 4: chutei 81 -> maior
+tentativa 5: chutei 84 -> menor
+tentativa 6: chutei 82 -> acertou</span></pre>
+    <p class="dim">Usa as <strong>mesmas</strong> <code>sortear</code>, <code>comparar</code> e <code>avaliar</code>. Nada foi reescrito.</p>
+  </section>
+
+  <!-- 27 -->
+  <section class="slide center">
+    <div class="kicker">Mil partidas</div>
+    <div class="cols" style="max-width:64vw">
+      <div class="col"><div class="card"><span class="t">média</span><span class="m" style="font-size:5vh;color:var(--ok)">5.78</span><span class="d">tentativas</span></div></div>
+      <div class="col"><div class="card"><span class="t">pior caso</span><span class="m" style="font-size:5vh;color:var(--accent)">7</span><span class="d">nunca mais que isso</span></div></div>
+    </div>
+  </section>
+
+  <!-- 28 -->
+  <section class="slide center">
+    <h2>Cada chute no meio corta<br>o que sobrou <strong>pela metade</strong></h2>
+<pre style="font-size:2.6vh">100 → 50 → 25 → 13 → 7 → 4 → 2 → 1</pre>
+    <p class="lead">Sete cortes. E <code>2⁷ = 128</code>, mais que 100.</p>
+    <p class="lead dim">Isso se chama <strong>busca binária</strong>.<br>Vocês acabaram de escrever uma sem saber.</p>
+  </section>
+
+  <!-- 29 -->
+  <section class="slide center">
+    <span class="tag ia">💊 Pílula de IA</span>
+    <h1>Um modelo<br>é uma função</h1>
+  </section>
+
+  <!-- 30 -->
+  <section class="slide">
+    <div class="kicker">Etapa 1 · a caixa</div>
+    <h2>Entra uma coisa, sai outra</h2>
+<pre><span class="k">def</span> dobro(x):
+    <span class="k">return</span> x * <span class="k">2</span>
+
+dobro(<span class="k">21</span>)   <span class="c"># 42</span></pre>
+    <p class="dim">Você não precisa saber o que tem dentro para usar.</p>
+  </section>
+
+  <!-- 31 -->
+  <section class="slide">
+    <div class="kicker">Etapa 2 · lembram do 1.681?</div>
+    <h2>O modelo da Aula 4 é literalmente isto</h2>
+<pre class="good"><span class="k">def</span> prever_nota(horas):
+    <span class="k">return</span> <span class="hl">1.681</span> * horas
+
+prever_nota(<span class="k">2</span>)     <span class="c"># 3.362</span>
+prever_nota(<span class="k">3.5</span>)   <span class="c"># 5.8835</span></pre>
+    <p class="lead">É isso. <strong>É o modelo inteiro.</strong> Uma linha.</p>
+  </section>
+
+  <!-- 32 -->
+  <section class="slide">
+    <div class="kicker">Etapa 3 · o coração da pílula</div>
+    <h2>Quem escreveu o corpo?</h2>
+    <div class="cols">
+      <div class="col">
+<pre><span class="k">def</span> dobro(x):
+    <span class="k">return</span> x * <span class="k">2</span></pre>
+        <p class="dim" style="font-size:2.1vh">o <strong>2</strong> fui EU que escrevi</p>
+      </div>
+      <div class="col">
+<pre class="good"><span class="k">def</span> prever_nota(h):
+    <span class="k">return</span> <span class="hl">1.681</span> * h</pre>
+        <p class="dim" style="font-size:2.1vh">o <strong>1.681</strong> ninguém escreveu</p>
+      </div>
+    </div>
+    <p class="dim">Ele saiu de <strong>50 voltas de um <code>for</code></strong> medindo erro.</p>
+  </section>
+
+  <!-- 33 -->
+  <section class="slide">
+    <div class="kicker">A chamada é idêntica. Só o corpo mudou.</div>
+    <h2>Antes e depois do treino</h2>
+<pre style="font-size:2.2vh"><span class="c">2h -> chute 1.0 | treinado 3.4 | real  4
+4h -> chute 2.0 | treinado 6.7 | real  7
+6h -> chute 3.0 | treinado 10.1 | real 10</span></pre>
+  </section>
+
+  <!-- 34 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.4vh;max-width:38ch">Treinar um modelo é escrever o corpo de uma função <strong>sem digitar o corpo dela</strong>.</p>
+    <p class="lead dim" style="margin-top:2vh">Você define o formato.<br>Os dados escolhem os números.</p>
+  </section>
+
+  <!-- 35 -->
+  <section class="slide">
+    <div class="kicker">Etapa 4 · e ele erra com cara de certeza</div>
+    <h2>Quantas horas para tirar 10?</h2>
+<pre class="err">prever_nota(<span class="k">7</span>)
+
+<span class="c">→</span> <span class="e">11.767</span></pre>
+    <p class="lead">Nota <strong>acima de 10</strong>.</p>
+    <p class="dim">Ninguém contou para ele que o máximo é 10.<br>Os dados dele iam até 6 horas.</p>
+  </section>
+
+  <!-- 36 -->
+  <section class="slide center">
+    <h1>Isso se chama<br><span class="hl">extrapolar</span></h1>
+    <p class="lead">Uma das formas mais comuns de IA<br>falar bobagem com confiança total.</p>
+    <p class="lead" style="color:var(--accent);margin-top:1.5vh">Um modelo não sabe que não sabe.</p>
+  </section>
+
+  <!-- 37 -->
+  <section class="slide">
+    <div class="kicker">Etapa 5 · tudo cabe nessa forma</div>
+    <h2>Entra / sai</h2>
+    <table>
+      <tr><th>Função</th><th>Entra</th><th>Sai</th></tr>
+      <tr><td class="mono">prever_nota</td><td>horas</td><td>nota</td></tr>
+      <tr><td class="mono">eh_spam</td><td>mensagem</td><td>spam / normal</td></tr>
+      <tr><td class="mono">visão</td><td>foto</td><td>"gato"</td></tr>
+      <tr><td class="mono">ChatGPT</td><td>tokens</td><td>próximo token</td></tr>
+    </table>
+  </section>
+
+  <!-- 38 -->
+  <section class="slide center">
+<pre style="font-size:2.6vh"><span class="k">def</span> responder(tokens):
+    <span class="k">return</span> proximo_token</pre>
+    <p class="lead" style="margin-top:1.5vh">A forma é a mesma.</p>
+    <p class="lead dim">O que muda é que o corpo dele tem <strong>bilhões</strong><br>de números — e nenhum foi digitado por uma pessoa.</p>
+  </section>
+
+  <!-- 39 -->
+  <section class="slide">
+    <div class="kicker">Guardem estas três</div>
+    <h2>O que fica da pílula de hoje</h2>
+    <ul>
+      <li class="n1"><strong>Um modelo é uma função.</strong> Entra dado, sai resposta.</li>
+      <li class="n2"><strong>A sua função vocês escreveram; a do modelo os dados escreveram.</strong> Só isso muda.</li>
+      <li class="n3"><strong>Fora do que ele viu, ele inventa</strong> — com a mesma cara de certeza.</li>
+    </ul>
+  </section>
+
+  <!-- 40 -->
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><strong>Terminar o Projeto 1</strong> e acrescentar <strong>uma</strong> coisa sua: limite de tentativas, dificuldade, placar</li>
+      <li class="n2"><strong>Refatorar o boletim</strong> da Aula 5 com funções — nenhuma com <code>print</code> dentro</li>
+      <li class="n3"><strong>IMC:</strong> <code>calcular_imc()</code> e <code>faixa_imc()</code></li>
+      <li><strong>Desafio:</strong> <code>eh_primo(n)</code>, e todos os primos até 100</li>
+    </ul>
+  </section>
+
+  <!-- 41 -->
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h2>No boletim vocês carregam<br><strong>duas listas em paralelo</strong></h2>
+<pre style="font-size:2.2vh">nomes = [<span class="s">"Ana"</span>, <span class="s">"Bruno"</span>, <span class="s">"Carla"</span>]
+notas = [<span class="k">8.5</span>, <span class="k">4.0</span>, <span class="k">9.5</span>]</pre>
+    <p class="lead">Amarradas só pelo índice.</p>
+  </section>
+
+  <!-- 42 -->
+  <section class="slide center">
+    <h1>Até alguém ordenar uma<br>e esquecer a outra</h1>
+    <p class="lead" style="color:var(--err)">Aí a Ana fica com a nota do Bruno<br>e ninguém percebe.</p>
+    <p class="lead dim" style="margin-top:1.5vh">E se eu quisesse guardar junto de verdade?<br><code>nome: Ana, nota: 8.5, faltas: 2</code></p>
+    <p class="lead">A lista guarda <strong>ordem</strong>.<br>Ela não guarda <strong>nome</strong>.</p>
+  </section>
+
+  <!-- 43 -->
+  <section class="slide center">
+    <h1>Hoje vocês têm<br>um programa de verdade</h1>
+    <p class="lead">Feito de peças. Que dá para testar peça por peça.</p>
+    <p class="lead dim">Guardem o arquivo — no fim do curso<br>ele vai estar no portfólio de vocês.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
