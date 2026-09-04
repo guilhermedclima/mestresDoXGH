@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 8</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0;
+    display:none; flex-direction:column; justify-content:center;
+    padding:5vh 7vw; gap:2.2vh;
+  }
+  .slide.active{display:flex; animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  h1{font-size:6.5vh; line-height:1.05; font-weight:800; letter-spacing:-.02em}
+  h2{font-size:4.6vh; line-height:1.12; font-weight:750; letter-spacing:-.015em}
+  h3{font-size:2.8vh; font-weight:700; color:var(--accent2)}
+  p{font-size:2.6vh; line-height:1.5; max-width:56ch; color:var(--fg)}
+  p.lead{font-size:3.2vh; line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none; display:flex; flex-direction:column; gap:1.6vh}
+  li{font-size:2.6vh; line-height:1.4; padding-left:1.5em; position:relative; max-width:58ch}
+  li::before{content:"▸"; position:absolute; left:0; color:var(--accent); font-weight:700}
+  li.no::before{content:"✕"; color:var(--err)}
+  li.yes::before{content:"✓"; color:var(--ok)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:8px; padding:2.2vh 2.4vh; font-size:2.6vh; line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    overflow:auto; max-width:min(90vw,62ch);
+  }
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)} .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex; gap:2.5vw; flex-wrap:wrap; width:100%; align-items:flex-start}
+  .col{flex:1 1 0; min-width:250px; display:flex; flex-direction:column; gap:1.2vh}
+  .col pre{font-size:2.1vh; max-width:none; width:100%}
+  .card{background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2vh 2.2vh; display:flex; flex-direction:column; gap:.8vh}
+  .card .t{font-size:2.2vh; font-weight:700; color:var(--accent)}
+  .card .d{font-size:1.9vh; color:var(--dim); line-height:1.4}
+  .card .m{font-size:2.4vh; font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--fg)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.6vh; width:100%}
+  .big{font-size:9vh; font-weight:800; line-height:1; color:var(--accent)}
+  .quote{border-left:4px solid var(--accent); padding-left:2.4vh; font-size:3.4vh; line-height:1.35; font-style:italic; max-width:48ch}
+  .center{align-items:center; text-align:center; justify-content:center}
+  .center ul{align-items:flex-start}
+  .center pre{text-align:left}
+  .tag{display:inline-block; font-size:1.6vh; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--bg); background:var(--accent); padding:.4em .9em; border-radius:100px}
+  .tag.ia{background:var(--accent2); color:#fff}
+
+  table{border-collapse:collapse; font-size:2.4vh}
+  td,th{padding:1.1vh 2vh; border-bottom:1px solid var(--border); text-align:left}
+  th{color:var(--accent); font-size:1.9vh; letter-spacing:.06em; text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace; color:var(--accent2); font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="title">Mestres do XGH · Aula 8</div>
+<div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div>
+<div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="kicker">Aula 8 · 3 de outubro</div>
+    <h1>Arquivos</h1>
+    <p class="lead dim">O dado que sobrevive.</p>
+    <p class="lead" style="color:var(--accent)">E hoje o Python sai do navegador.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">Semana passada</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes">Dicionário: o valor amarrado ao <strong>nome</strong></li>
+      <li class="yes"><code>.get()</code> quando a chave pode não existir</li>
+      <li class="yes">Lista de dicionários — o formato de quase todo dado</li>
+      <li class="yes"><code>dumps</code> / <code>loads</code>, e a resposta da IA em JSON</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">E eu mandei vocês fecharem o Colab.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide center">
+    <h1 style="color:var(--err)">Sumiu tudo.</h1>
+    <p class="lead">Sete aulas de coisa que viveu na <strong>memória</strong>.</p>
+    <p class="lead dim">E memória morre quando o programa fecha.</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide center">
+    <h1>Memória morre.<br><span class="hl">Arquivo não.</span></h1>
+    <p class="lead dim">Um pedaço de dado que fica no disco<br>depois que tudo acaba.</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <div class="kicker">Escrever</div>
+    <h2>Três linhas num arquivo</h2>
+<pre class="good"><span class="k">with</span> <span class="k">open</span>(<span class="s">"notas.txt"</span>, <span class="s">"w"</span>) <span class="k">as</span> f:
+    f.write(<span class="s">"Ana 8.5\n"</span>)
+    f.write(<span class="s">"Bruno 4.0\n"</span>)
+    f.write(<span class="s">"Carla 9.5\n"</span>)</pre>
+    <p class="dim">O <code>\n</code> é a quebra de linha. Sem ele, tudo sai grudado.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">Anatomia</div>
+    <h2>A linha destrinchada</h2>
+<pre style="font-size:1.9vh"><span class="k">with</span> <span class="k">open</span>(<span class="s">"notas.txt"</span>, <span class="s">"w"</span>) <span class="k">as</span> f:
+ │     │        │        │     <span class="c">└── apelido do arquivo</span>
+ │     │        │        <span class="c">└──────── MODO: "w" = write</span>
+ │     │        <span class="c">└───────────────── nome do arquivo</span>
+ │     <span class="c">└────────────────────────── abre</span>
+ <span class="c">└──────────────────────────────── e FECHA sozinho</span></pre>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide center">
+    <h2>O <code>with</code> não é enfeite</h2>
+    <p class="lead">Sem ele você teria que lembrar de <strong>fechar</strong> o arquivo.</p>
+    <p class="lead dim">Esquecer disso é causa clássica de arquivo corrompido.</p>
+    <p class="lead" style="color:var(--ok)">O <code>with</code> fecha por você —<br>inclusive se der erro no meio.</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">Ler</div>
+    <h2>Linha por linha</h2>
+<pre><span class="k">with</span> <span class="k">open</span>(<span class="s">"notas.txt"</span>) <span class="k">as</span> f:
+    <span class="k">for</span> linha <span class="k">in</span> f:
+        <span class="k">print</span>(<span class="k">repr</span>(linha))
+
+<span class="c">'Ana 8.5\n'
+'Bruno 4.0\n'
+'Carla 9.5\n'</span></pre>
+    <p class="dim">Sem o segundo argumento, o modo é <code>"r"</code> — o padrão.</p>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">Toda linha vem com o \n grudado</div>
+    <h2>E aí entra o <code>.strip()</code> da Aula 5</h2>
+<pre class="good">nome, nota = linha.strip().split()
+<span class="k">print</span>(f<span class="s">"{nome:6s} {</span><span class="hl">float(nota)</span><span class="s">}"</span>)</pre>
+    <p class="dim">Por que o <code>float()</code>?</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide center">
+    <h1>Tudo que sai de um arquivo<br>é <span class="hl">texto</span></h1>
+    <p class="lead">Exatamente igual ao <code>input()</code> da Aula 2.</p>
+    <p class="lead dim">O arquivo não sabe o que é número.<br>Quem sabe é você.</p>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 1</div>
+    <h2>O arquivo tem três nomes.<br>Vou acrescentar um quarto.</h2>
+<pre class="err"><span class="k">with</span> <span class="k">open</span>(<span class="s">"notas.txt"</span>, <span class="s">"w"</span>) <span class="k">as</span> f:
+    f.write(<span class="s">"Diego 6.0\n"</span>)
+
+<span class="c">Diego 6.0</span></pre>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide center">
+    <h1 style="color:var(--err)">Os três sumiram</h1>
+    <p class="lead">Sem aviso. Sem erro. Sem confirmação.</p>
+    <p class="lead dim"><code>"w"</code> não quer dizer "escrever no fim".<br>Quer dizer <strong>"zerar o arquivo e escrever"</strong>.</p>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <div class="kicker">Os três modos</div>
+    <h2>E qual deles é a faca</h2>
+    <table>
+      <tr><th>Modo</th><th>O que faz</th><th>Se já existe</th></tr>
+      <tr><td class="mono">"r"</td><td>lê</td><td>—</td></tr>
+      <tr><td class="mono">"w"</td><td>escreve</td><td style="color:var(--err)"><strong>apaga tudo antes</strong></td></tr>
+      <tr><td class="mono">"a"</td><td>acrescenta no fim</td><td>preserva</td></tr>
+    </table>
+    <p class="lead" style="margin-top:1vh">Na dúvida, use <code>"a"</code>.</p>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide">
+    <div class="kicker">💥 Quebrando de propósito nº 2</div>
+    <h2>O arquivo que não existe</h2>
+<pre class="err"><span class="k">with</span> <span class="k">open</span>(<span class="s">"nao_existe.txt"</span>) <span class="k">as</span> f:
+    <span class="k">print</span>(f.read())
+
+<span class="e">FileNotFoundError</span>: [Errno 2]
+No such file or directory</pre>
+    <p class="dim">Arquivo movido, renomeado, apagado, ou o programa rodando de outra pasta.<br><strong>Isso é inevitável no mundo real.</strong></p>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide center">
+    <h1>Como é que o programa<br>continua vivo quando<br>algo dá errado?</h1>
+    <p class="lead dim">Um problema que vem se acumulando desde a Aula 2.</p>
+    <p class="lead" style="color:var(--accent)">Semana que vem.<br>E é lá que eu pago a dívida do <code>abc</code>.</p>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <div class="kicker">As duas últimas aulas se encontram</div>
+    <h2>A agenda com endereço fixo</h2>
+<pre class="good" style="font-size:2.1vh"><span class="k">with</span> <span class="k">open</span>(<span class="s">"agenda.json"</span>, <span class="s">"w"</span>) <span class="k">as</span> f:
+    json.dump(agenda, f, indent=<span class="k">2</span>)
+
+<span class="k">with</span> <span class="k">open</span>(<span class="s">"agenda.json"</span>) <span class="k">as</span> f:
+    de_volta = json.load(f)</pre>
+    <p class="lead">Ela sobrevive agora.</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide center">
+    <span class="tag">A pegadinha que vai acontecer</span>
+<pre style="font-size:2.4vh"><span class="hl">dumps</span> / <span class="hl">loads</span>  →  mexem com STRING
+<span class="hl">dump</span>  / <span class="hl">load</span>   →  mexem com ARQUIVO</pre>
+    <p class="lead" style="margin-top:1.5vh">O <code>s</code> é de <em>string</em>.</p>
+    <p class="dim">Deu erro estranho em JSON? Cheque o <code>s</code> antes de tudo.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide">
+    <div class="kicker">A planilha do mundo real</div>
+    <h2>CSV</h2>
+<pre style="font-size:2.2vh"><span class="c">nome,nota,faltas
+Ana,8.5,2
+Bruno,4.0,7
+Carla,9.5,0</span></pre>
+    <p class="dim">Excel abre. Google Sheets abre. É como dado tabular circula no mundo inteiro.</p>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide">
+    <div class="kicker">E a Aula 7 cai do céu</div>
+    <h2><code>DictReader</code>: cada linha vira um dicionário</h2>
+<pre class="good" style="font-size:2.1vh"><span class="k">for</span> linha <span class="k">in</span> csv.DictReader(f):
+    <span class="k">print</span>(linha)
+
+<span class="c">{'nome': 'Ana', 'nota': <span class="hl">'8.5'</span>, 'faltas': '2'}</span></pre>
+    <p class="lead">Repare: o <code>8.5</code> está <strong>entre aspas</strong>.</p>
+    <p class="dim">É o mesmo problema do <code>"2" + "2"</code> que abriu a Aula 2.</p>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide center">
+    <div class="big">☕</div>
+    <h1>Pausa</h1>
+    <p class="lead dim">10 minutos.</p>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide center">
+    <div class="big">💻</div>
+    <h1>Agora na máquina<br>de vocês</h1>
+    <p class="lead">O arquivo que vocês criaram hoje está numa máquina do Google<br>e some quando a sessão fecha.</p>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide center">
+    <h2>Instalação em máquina alheia<br>dá errado. É normal.</h2>
+    <p class="lead">Se a sua não for hoje, você continua no Colab<br>e a gente resolve durante a semana.</p>
+    <p class="lead" style="color:var(--ok)">Ninguém vai ficar sem ambiente.</p>
+  </section>
+
+  <!-- 23 -->
+  <section class="slide">
+    <div class="kicker">O caminho</div>
+    <h2>Cinco marcos</h2>
+    <ul>
+      <li class="n1"><strong>Python</strong> instalado — no Windows, <code>Add to PATH</code></li>
+      <li class="n2"><code>python --version</code> respondendo</li>
+      <li class="n3"><strong>VS Code</strong> + extensão <strong>Python</strong> da Microsoft</li>
+      <li>Pasta <code>mestres-do-xgh</code> aberta no VS Code</li>
+      <li><code>ola.py</code> rodando com o ▶</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">Ninguém avança sozinho. Quem terminar ajuda o vizinho.</p>
+  </section>
+
+  <!-- 24 -->
+  <section class="slide center">
+    <span class="tag">Windows · a tela que todo mundo erra</span>
+<pre class="err" style="font-size:2.4vh">☑  Add python.exe to PATH</pre>
+    <h2 style="margin-top:1vh">Marque <strong>antes</strong> de clicar<br>em qualquer coisa.</h2>
+    <p class="dim">Ela vem desmarcada. Sem ela, o terminal não acha o Python.</p>
+  </section>
+
+  <!-- 25 -->
+  <section class="slide">
+    <div class="kicker">O que muda</div>
+    <h2>Colab vs. sua máquina</h2>
+    <table>
+      <tr><th></th><th>Colab</th><th>Sua máquina</th></tr>
+      <tr><td>Onde roda</td><td>Google</td><td>seu PC</td></tr>
+      <tr><td>Arquivos</td><td style="color:var(--err)"><strong>somem</strong></td><td style="color:var(--ok)">ficam</td></tr>
+      <tr><td>Internet</td><td>precisa</td><td>não precisa</td></tr>
+      <tr><td>Executa</td><td>célula por célula</td><td>o arquivo inteiro</td></tr>
+    </table>
+  </section>
+
+  <!-- 26 -->
+  <section class="slide center">
+    <h1>Rodem todos juntos</h1>
+<pre class="good" style="font-size:2.2vh"><span class="k">print</span>(f<span class="s">"Olá, {nome}! Isso está rodando</span>
+<span class="s">       na minha máquina."</span>)</pre>
+    <p class="lead" style="margin-top:1.5vh">É o mesmo <code>print</code> da Aula 1.</p>
+    <p class="lead dim">Só que agora o arquivo continua lá amanhã.</p>
+  </section>
+
+  <!-- 27 -->
+  <section class="slide center">
+    <span class="tag ia">💊 Pílula de IA</span>
+    <h1>Sem dado guardado<br>não existe modelo</h1>
+  </section>
+
+  <!-- 28 -->
+  <section class="slide center">
+    <div class="kicker">Etapa 1</div>
+    <h2>O detector de spam da Aula 3 nasceu de<br>16 mensagens escritas na mão<br><strong>dentro do código</strong>.</h2>
+    <p class="lead dim">Isso não é como funciona de verdade.</p>
+  </section>
+
+  <!-- 29 -->
+  <section class="slide">
+    <div class="kicker">Na vida real o dado mora num arquivo</div>
+    <h2>O dataset vira CSV</h2>
+<pre style="font-size:2vh"><span class="c">texto,rotulo
+promocao imperdivel clique aqui,spam
+voce ganhou um premio gratis,spam
+oi tudo bem vamos almocar amanha,normal
+reuniao adiada para as 15h,normal</span></pre>
+    <p class="dim">E o modelo é treinado <strong>lendo o arquivo</strong> — o código não conhece nenhuma mensagem.</p>
+  </section>
+
+  <!-- 30 -->
+  <section class="slide center">
+    <h1>Para melhorar esse modelo<br>você edita um <span class="hl">arquivo</span>,<br>não um programa.</h1>
+    <p class="lead dim" style="margin-top:1.5vh">É a promessa da Aula 3 virando concreta.<br>Os exemplos moram numa planilha<br>que qualquer pessoa abre.</p>
+  </section>
+
+  <!-- 31 -->
+  <section class="slide">
+    <div class="kicker">Etapa 2 · quanto dado é preciso?</div>
+    <h2>50 mensagens de teste, média de 30 sorteios</h2>
+<pre class="good" style="font-size:2.1vh"><span class="c">   4 exemplos ->  77.8%
+   8 exemplos ->  94.6%
+  16 exemplos ->  99.9%
+  32 exemplos -> 100.0%
+  64 exemplos -> 100.0%
+ 128 exemplos -> 100.0%</span></pre>
+    <p class="dim">Uma medição só é anedota. Por isso a média.</p>
+  </section>
+
+  <!-- 32 -->
+  <section class="slide">
+    <div class="kicker">Duas leituras, e as duas importam</div>
+    <h2>A curva</h2>
+    <ul>
+      <li class="n1"><strong>No começo cada exemplo vale ouro.</strong> De 4 para 16 salta de 78% para 100%.</li>
+      <li class="n2"><strong>Depois satura.</strong> De 32 para 128 você quadruplicou o dado e ganhou <strong>zero</strong>.</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh"><em>Este conjunto é fácil de propósito — por isso chega a 100%. O que importa é o formato da curva: sobe rápido, depois empaca.</em></p>
+  </section>
+
+  <!-- 33 -->
+  <section class="slide center">
+    <p class="quote" style="font-size:3.2vh;max-width:38ch">"A gente precisa de mais dados."<br><br>Às vezes é verdade. Às vezes o modelo já saturou e o problema é outro.</p>
+  </section>
+
+  <!-- 34 -->
+  <section class="slide">
+    <div class="kicker">Etapa 3 · 💥 e se o dado estiver errado?</div>
+    <h2>Mesmos 64 exemplos, rótulos trocados</h2>
+<pre class="err" style="font-size:2.1vh"><span class="c"> 0 rótulos errados -> 100.0%
+ 4 rótulos errados -> 100.0%
+ 8 rótulos errados -> 100.0%
+16 rótulos errados ->  97.7%
+24 rótulos errados ->  <span class="hl">85.9%</span></span></pre>
+    <p class="dim">Ele aguenta um pouco. Depois de certo ponto, desaba.</p>
+  </section>
+
+  <!-- 35 -->
+  <section class="slide center">
+    <h2>E repare no que ele <strong>não</strong> faz:</h2>
+    <p class="lead">não avisa · não dá erro · não fica vermelho</p>
+    <p class="lead" style="color:var(--accent);margin-top:1.5vh">Ele só responde pior, com a mesma<br>cara de confiança de sempre.</p>
+    <p class="dim">Igual à extrapolação da Aula 6.</p>
+  </section>
+
+  <!-- 36 -->
+  <section class="slide">
+    <div class="kicker">Por que isso muda a sua vida</div>
+    <h2>O ativo é o dado, não o código</h2>
+    <ul>
+      <li class="n1">O código do detector cabe em <strong>cinco linhas</strong> e está em qualquer tutorial. O que ninguém te dá é o <strong>arquivo de exemplos</strong>.</li>
+      <li class="n2">Por isso empresas de IA brigam por dado. Não é o algoritmo que é segredo.</li>
+      <li class="n3">Dado ruim envenena <strong>em silêncio</strong>.</li>
+    </ul>
+  </section>
+
+  <!-- 37 -->
+  <section class="slide">
+    <div class="kicker">Guardem estas três</div>
+    <h2>O que fica da pílula de hoje</h2>
+    <ul>
+      <li class="n1"><strong>Sem dado guardado não existe modelo.</strong> E dado guardado é arquivo.</li>
+      <li class="n2"><strong>Mais dado ajuda muito no começo</strong> e cada vez menos depois.</li>
+      <li class="n3"><strong>Dado errado é pior que dado faltando</strong> — porque não avisa.</li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">E é por isso que a Aula 10 é sobre <strong>limpar tabela</strong>.</p>
+  </section>
+
+  <!-- 38 -->
+  <section class="slide">
+    <div class="kicker">Até sábado · tudo no VS Code, não no Colab</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><strong>Agenda que sobrevive:</strong> carrega, acrescenta, salva. Feche e abra para confirmar</li>
+      <li class="n2"><strong>Diário de bordo:</strong> acrescenta no <code>diario.txt</code> com a data — modo <code>"a"</code></li>
+      <li class="n3"><strong>Boletim em CSV:</strong> um programa salva, outro lê. <strong>Dois programas, um arquivo</strong></li>
+      <li><strong>Desafio:</strong> fazer a tarefa 1 funcionar quando o arquivo <strong>ainda não existe</strong></li>
+    </ul>
+  </section>
+
+  <!-- 39 -->
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h2>E se o arquivo existir<br>e estiver <strong>corrompido</strong>?</h2>
+    <p class="lead dim">E se o usuário digitar <code>abc</code> onde você espera número?<br>E se o CSV tiver uma linha faltando coluna?</p>
+  </section>
+
+  <!-- 40 -->
+  <section class="slide center">
+    <h1>É tudo o mesmo problema:</h1>
+    <h1 style="color:var(--err)">o programa morre<br>no primeiro imprevisto.</h1>
+    <p class="lead" style="margin-top:1.5vh;color:var(--accent)">Semana que vem eu pago a dívida<br>do <code>abc</code> — aberta desde a Aula 2.</p>
+  </section>
+
+  <!-- 41 -->
+  <section class="slide center">
+    <h1>Hoje vocês pararam<br>de perder trabalho</h1>
+    <p class="lead">O que vocês escreverem daqui para frente <strong>fica</strong>.</p>
+    <p class="lead dim">Semana que vem a gente aprende<br>a não deixar o programa morrer.</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 't' || k === 'T') {
+      var el = document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) { show(dx < 0 ? i + 1 : i - 1); }
+    x0 = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
