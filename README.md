@@ -39,7 +39,7 @@ Cada aula fica na sua própria pasta e gera três ou quatro peças, numeradas em
 | 8 | 03/10/2026 | Arquivos + instalação local | [roteiro](aula%208/22-aula-08-roteiro.md) · [slides](aula%208/23-aula-08-slides.html) · [notebook](aula%208/24-aula-08-notebook.ipynb) · [guia de instalação](aula%208/25-guia-instalacao-local.md) | ✅ preparada |
 | 9 | 10/10/2026 | Erros e debug | [roteiro](aula%209/26-aula-09-roteiro.md) · [slides](aula%209/27-aula-09-slides.html) · [notebook](aula%209/28-aula-09-notebook.ipynb) | ✅ preparada |
 | 10 | 17/10/2026 | pandas — *fecha o Módulo 2* | [roteiro](aula%2010/29-aula-10-roteiro.md) · [slides](aula%2010/30-aula-10-slides.html) · [notebook](aula%2010/31-aula-10-notebook.ipynb) | ✅ preparada |
-| 11 | 24/10/2026 | Bibliotecas e `pip` | — | ⬜ a preparar |
+| 11 | 24/10/2026 | Bibliotecas e `pip` — *abre o Módulo 3* | [roteiro](aula%2011/32-aula-11-roteiro.md) · [slides](aula%2011/33-aula-11-slides.html) · [notebook](aula%2011/34-aula-11-notebook.ipynb) | ✅ preparada |
 
 O plano completo do curso — as 24 aulas, os módulos e o porquê de cada decisão — está em **[`00-plano-do-curso.md`](00-plano-do-curso.md)**.
 
