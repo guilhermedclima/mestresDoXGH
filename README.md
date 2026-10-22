@@ -40,6 +40,10 @@ Cada aula fica na sua própria pasta e gera três ou quatro peças, numeradas em
 | 9 | 10/10/2026 | Erros e debug | [roteiro](aula%209/26-aula-09-roteiro.md) · [slides](aula%209/27-aula-09-slides.html) · [notebook](aula%209/28-aula-09-notebook.ipynb) | ✅ preparada |
 | 10 | 17/10/2026 | pandas — *fecha o Módulo 2* | [roteiro](aula%2010/29-aula-10-roteiro.md) · [slides](aula%2010/30-aula-10-slides.html) · [notebook](aula%2010/31-aula-10-notebook.ipynb) | ✅ preparada |
 | 11 | 24/10/2026 | Bibliotecas e `pip` — *abre o Módulo 3* | [roteiro](aula%2011/32-aula-11-roteiro.md) · [slides](aula%2011/33-aula-11-slides.html) · [notebook](aula%2011/34-aula-11-notebook.ipynb) | ✅ preparada |
+| 12 | 31/10/2026 | APIs e `requests` | [roteiro](aula%2012/35-aula-12-roteiro.md) · [slides](aula%2012/36-aula-12-slides.html) · [notebook](aula%2012/37-aula-12-notebook.ipynb) | ✅ preparada |
+| 13 | 07/11/2026 | Automação de verdade | [roteiro](aula%2013/38-aula-13-roteiro.md) · [slides](aula%2013/39-aula-13-slides.html) · [notebook](aula%2013/40-aula-13-notebook.ipynb) | ✅ preparada |
+| 14 | 14/11/2026 | Git e GitHub + **Projeto 2** | [roteiro](aula%2014/41-aula-14-roteiro.md) · [slides](aula%2014/42-aula-14-slides.html) · [notebook](aula%2014/43-aula-14-notebook.ipynb) | ✅ preparada |
+| 15 | 21/11/2026 | Machine learning de verdade — *abre o Módulo 4* | [roteiro](aula%2015/44-aula-15-roteiro.md) · [slides](aula%2015/45-aula-15-slides.html) · [notebook](aula%2015/46-aula-15-notebook.ipynb) | ✅ preparada |
 
 O plano completo do curso — as 24 aulas, os módulos e o porquê de cada decisão — está em **[`00-plano-do-curso.md`](00-plano-do-curso.md)**.
 

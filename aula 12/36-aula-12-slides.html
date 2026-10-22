@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 12</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;-webkit-font-smoothing:antialiased}
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:5vh 7vw;gap:2.2vh}
+  .slide.active{display:flex;animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:6.5vh;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+  h2{font-size:4.6vh;line-height:1.12;font-weight:750;letter-spacing:-.015em}
+  h3{font-size:2.8vh;font-weight:700;color:var(--accent2)}
+  p{font-size:2.6vh;line-height:1.5;max-width:56ch}
+  p.lead{font-size:3.2vh;line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none;display:flex;flex-direction:column;gap:1.6vh}
+  li{font-size:2.6vh;line-height:1.4;padding-left:1.5em;position:relative;max-width:58ch}
+  li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+  li.yes::before{content:"✓";color:var(--ok)}
+  li.no::before{content:"✕";color:var(--err)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."} li.n4::before{content:"4."}
+
+  pre{background:var(--code-bg);border:1px solid var(--border);border-left:4px solid var(--accent);
+    border-radius:8px;padding:2.2vh 2.4vh;font-size:2.6vh;line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;overflow:auto;max-width:min(90vw,64ch)}
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  pre.term{border-left-color:var(--accent2)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)}
+  .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex;gap:2.5vw;flex-wrap:wrap;width:100%;align-items:flex-start}
+  .col{flex:1 1 0;min-width:250px;display:flex;flex-direction:column;gap:1.2vh}
+  .col pre{font-size:2.1vh;max-width:none;width:100%}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:2vh 2.2vh;display:flex;flex-direction:column;gap:.8vh}
+  .card .t{font-size:2.2vh;font-weight:700;color:var(--accent)}
+  .card .d{font-size:1.9vh;color:var(--dim);line-height:1.4}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.6vh;width:100%}
+  .big{font-size:9vh;font-weight:800;line-height:1;color:var(--accent)}
+  .quote{border-left:4px solid var(--accent);padding-left:2.4vh;font-size:3.4vh;line-height:1.35;
+    font-style:italic;max-width:48ch}
+  .center{align-items:center;text-align:center;justify-content:center}
+  .center ul{align-items:flex-start} .center pre{text-align:left}
+  .tag{display:inline-block;font-size:1.6vh;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--bg);background:var(--accent);padding:.4em .9em;border-radius:100px}
+  .tag.ia{background:var(--accent2);color:#fff}
+
+  table{border-collapse:collapse;font-size:2.3vh}
+  td,th{padding:1vh 1.8vh;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--accent);font-size:1.8vh;letter-spacing:.06em;text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--accent2);font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div><div id="title">Mestres do XGH · Aula 12</div><div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div><div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <section class="slide center">
+    <div class="kicker">Aula 12 · 31 de outubro · Módulo 3</div>
+    <h1>APIs e <code>requests</code></h1>
+    <p class="lead dim">Buscar dado que não é seu.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Sábado passado</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes">O PyPI é a prateleira — <code>pip install</code> baixa de lá</li>
+      <li class="yes">Nome de instalação ≠ nome de import</li>
+      <li class="yes"><code>requirements.txt</code> acaba com o "na minha máquina funciona"</li>
+      <li class="yes">Cada um achou uma biblioteca <strong>sozinho</strong>, lendo documentação</li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">A dívida</span>
+    <h1>De onde vem<br>esse dado?</h1>
+    <p class="lead dim">Quem está do outro lado?<br>E por que deixariam eu pegar de graça?</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Duas abas, o mesmo dado</div>
+    <h2>Qual das duas vocês preferem?</h2>
+    <div class="cols">
+      <div class="col"><h3>Correios</h3>
+        <div class="card"><span class="t">Menu, logo, botão</span><span class="d">Campo de busca, resultado numa caixa bonita, rodapé com telefone</span></div>
+      </div>
+      <div class="col"><h3>viacep.com.br/ws/11013001/json/</h3>
+<pre style="font-size:1.9vh">{
+  <span class="k">"cep"</span>: <span class="s">"11013-001"</span>,
+  <span class="k">"logradouro"</span>: <span class="s">"Avenida João Pessoa"</span>,
+  <span class="k">"bairro"</span>: <span class="s">"Centro"</span>,
+  <span class="k">"localidade"</span>: <span class="s">"Santos"</span>,
+  <span class="k">"uf"</span>: <span class="s">"SP"</span>, <span class="k">"ddd"</span>: <span class="s">"13"</span>
+}</pre></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Vocês preferem a primeira porque vocês são gente</div>
+    <h2>Seu programa não é gente</h2>
+    <p class="lead">Para ele, a primeira aba é um pesadelo e a segunda é um <strong>presente embrulhado</strong>.</p>
+    <p class="lead hl">Isso é uma API.</p>
+    <p>Um endereço na internet que devolve <strong>dado puro</strong>, no formato que programa lê. Sem menu, sem cor, sem botão.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:4.2vh;max-width:30ch">Site é para o olho.<br><br>API é para o <strong><code>for</code></strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A pergunta literal que ficou</div>
+    <h2>Quem está do outro lado?</h2>
+    <ul>
+      <li>Do outro lado do <strong>ViaCEP</strong>: um servidor que alguém paga</li>
+      <li>Do outro lado da <strong>cotação</strong>: uma empresa</li>
+      <li>Do outro lado da <strong>OpenAI</strong>: um data center</li>
+    </ul>
+    <p class="lead" style="margin-top:1vh">Nenhum é mágica. E nenhum é <strong>de graça para quem mantém</strong>.</p>
+    <p class="dim">Guardem isso — na última hora a gente volta nesse ponto.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A exceção boazinha</div>
+    <h2>Instala e importa com o mesmo nome</h2>
+<pre class="term">pip install requests</pre>
+<pre><span class="k">import</span> requests
+
+resposta = requests.get(<span class="s">"https://api.agify.io?name=guilherme"</span>)
+<span class="k">print</span>(resposta)</pre>
+<pre class="good">&lt;Response [200]&gt;</pre>
+    <p class="dim">Três linhas. Essa é a aula inteira — o resto é cuidado.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O que aconteceu na rede</div>
+    <h2>Quatro passos</h2>
+    <ul>
+      <li class="n1">o Python abriu uma conexão com <code>api.agify.io</code></li>
+      <li class="n2">mandou um pedido: <em>"me dá o que está em <code>/?name=guilherme</code>"</em></li>
+      <li class="n3">o servidor respondeu com um <strong>status</strong> e um <strong>corpo de texto</strong></li>
+      <li class="n4">o <code>requests</code> embrulhou as duas coisas num objeto</li>
+    </ul>
+    <p class="lead" style="margin-top:1vh">Esse objeto <strong>não é o dado</strong>. É o <span class="hl">envelope</span>.</p>
+    <p class="dim">Dentro dele tem o status e tem o corpo. A gente vai abrir os dois.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O corpo cru</div>
+    <h2>Chaves, dois-pontos, vírgula</h2>
+<pre><span class="k">print</span>(resposta.text)</pre>
+<pre class="term" style="font-size:2.3vh">{<span class="k">"count"</span>:<span class="s">5405</span>,<span class="k">"name"</span>:<span class="s">"guilherme"</span>,<span class="k">"age"</span>:<span class="s">34</span>}</pre>
+    <p class="lead">Isso é <strong>JSON</strong> — a Aula 7. Vocês já sabem ler isso.</p>
+    <p class="dim">A API olhou 5405 Guilhermes e apostou 34 anos. Errou. Mas repare no <code>count</code>: ela disse <strong>em quantos dados se baseou</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O que o servidor achou do seu pedido</div>
+    <h2>O <code>status_code</code></h2>
+    <table>
+      <tr><th>Status</th><th>Em português de gente</th></tr>
+      <tr><td class="mono">200</td><td>o servidor entendeu e respondeu</td></tr>
+      <tr><td class="mono">400</td><td>você pediu errado</td></tr>
+      <tr><td class="mono">401 / 403</td><td>não provou quem é, ou não pode</td></tr>
+      <tr><td class="mono">404</td><td>esse endereço não existe</td></tr>
+      <tr><td class="mono">429</td><td>você pediu demais, espere</td></tr>
+      <tr><td class="mono">500</td><td><strong>o problema é do outro lado</strong></td></tr>
+    </table>
+    <p class="lead" style="margin-top:1vh;max-width:none">🔑 Decorem três: <span style="color:var(--ok)"><strong>200</strong> deu certo</span> · <span style="color:var(--err)"><strong>4xx</strong> o erro é seu</span> · <span class="hl">5xx o erro é dele</span></p>
+    <p class="dim">Isso resolve 95% dos casos.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O reencontro com a Aula 7</div>
+    <h2>Olhem o tipo</h2>
+<pre>dados = resposta.json()
+
+<span class="k">print</span>(type(dados))
+<span class="k">print</span>(dados[<span class="s">"age"</span>])</pre>
+<pre class="good">&lt;class <span class="s">'dict'</span>&gt;
+34</pre>
+    <p class="lead">É <strong>dicionário</strong>. Mesmas chaves, mesmos colchetes de setembro.</p>
+    <p class="lead hl">Vocês não precisam aprender nada novo para usar API.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Não confundam</div>
+    <h2><code>.text</code> ou <code>.json()</code>?</h2>
+    <table>
+      <tr><th></th><th>o que é</th><th>o que você faz</th></tr>
+      <tr><td class="mono">resposta.text</td><td><strong>string</strong></td><td><code>print</code>, procurar pedaço, salvar</td></tr>
+      <tr><td class="mono">resposta.json()</td><td><strong>dict</strong> ou <strong>list</strong></td><td><code>dados["chave"]</code>, <code>for</code>, <code>.get()</code></td></tr>
+    </table>
+    <p class="lead" style="margin-top:1vh"><code>.text</code> é o papel. <code>.json()</code> é o papel <strong>já lido e organizado</strong>.</p>
+    <p class="dim">É o mesmo pulo do <code>json.loads</code> da Aula 7 — só que o <code>requests</code> já faz.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Parâmetros</div>
+    <h2>Aquele <code>?</code> no meio da URL</h2>
+<pre style="font-size:2.3vh">https://api.agify.io<span class="e">?</span><span class="hl">name</span>=<span class="s">guilherme</span>
+                    <span class="e">↑</span>     <span class="hl">↑</span>      <span class="s">↑</span>
+                    <span class="e">│</span>     <span class="hl">│</span>      <span class="s">└── o valor</span>
+                    <span class="e">│</span>     <span class="hl">└── a chave</span>
+                    <span class="e">└── começa a lista de parâmetros</span></pre>
+    <p class="lead">Depois do <code>?</code> vem <code>chave=valor</code>, e <code>&amp;</code> para juntar mais de um.</p>
+    <p class="lead hl">É assim que uma URL atende mil pedidos diferentes.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Dois jeitos de montar</div>
+    <h2>Deixe o <code>requests</code> montar</h2>
+    <div class="cols">
+      <div class="col"><h3>Colando na mão</h3>
+<pre class="err">requests.get(
+  <span class="s">"https://api.agify.io?name="</span> + nome)</pre>
+        <p class="dim" style="font-size:2vh">No dia em que o valor tiver espaço, acento ou <code>&amp;</code>, a URL sai quebrada.</p></div>
+      <div class="col"><h3>Com <code>params=</code></h3>
+<pre class="good">requests.get(
+  <span class="s">"https://api.agify.io"</span>,
+  params={<span class="s">"name"</span>: <span class="s">"maria"</span>,
+          <span class="s">"country_id"</span>: <span class="s">"BR"</span>})</pre>
+        <p class="dim" style="font-size:2vh">O <code>requests</code> sabe escapar. Você não precisa saber.</p></div>
+    </div>
+<pre class="term" style="font-size:2vh">https://api.agify.io/?name=maria&amp;country_id=BR
+{<span class="s">'count'</span>: 3622, <span class="s">'name'</span>: <span class="s">'maria'</span>, <span class="s">'age'</span>: <span class="hl">59</span>, <span class="s">'country_id'</span>: <span class="s">'BR'</span>}</pre>
+    <p class="dim">Mesma API, mesmo endereço, <strong>parâmetro diferente, resposta diferente</strong>. Ler a documentação de uma API é, quase sempre, descobrir <strong>que parâmetros ela aceita</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O outro padrão comum</div>
+    <h2>O ViaCEP põe o parâmetro no caminho</h2>
+<pre style="font-size:2.3vh">https://viacep.com.br/ws/<span class="hl">11013001</span>/<span class="k">json</span>/
+                         <span class="hl">↑</span>        <span class="k">↑</span>
+                         <span class="hl">CEP</span>      <span class="k">formato</span></pre>
+    <p class="lead">Não tem regra universal. Tem <strong>documentação</strong>.</p>
+    <p class="dim">De novo: é a habilidade de sábado passado.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="big">☕</div><h1>Pausa</h1><p class="lead dim">10 minutos.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">💥 Quebrar de propósito</span>
+    <h1>Os quatro jeitos<br>de quebrar</h1>
+    <p class="lead dim"><code>requests.get</code> funciona na primeira tentativa.<br>É o resto que vai morder vocês.</p>
+    <p class="lead hl">O nº 1 é o mais importante de hoje.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 1 · primeiro a referência</div>
+    <h2>Um CEP que existe</h2>
+<pre>r = requests.get(<span class="s">"https://viacep.com.br/ws/11013001/json/"</span>,
+                 timeout=<span class="k">5</span>)</pre>
+<pre class="good" style="font-size:2.2vh">200
+{<span class="s">'cep'</span>: <span class="s">'11013-001'</span>, <span class="s">'logradouro'</span>: <span class="s">'Avenida João Pessoa'</span>,
+ <span class="s">'bairro'</span>: <span class="s">'Centro'</span>, <span class="s">'localidade'</span>: <span class="s">'Santos'</span>,
+ <span class="s">'uf'</span>: <span class="s">'SP'</span>, <span class="s">'ddd'</span>: <span class="s">'13'</span>, ...}</pre>
+    <p class="dim">Cortei alguns campos para caber. Vem mais coisa: <code>estado</code>, <code>regiao</code>, <code>ibge</code>, <code>gia</code>, <code>siafi</code>.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">Apostem antes de eu rodar</span>
+    <h1>CEP <code>99999999</code></h1>
+    <p class="lead">Oito dígitos. Formato certo.<br><strong>Mas não existe endereço nenhum com esse CEP.</strong></p>
+    <p class="lead hl">Que status vem?</p>
+  </section>
+
+  <section class="slide center">
+    <div class="big" style="font-size:14vh;color:var(--err)">200</div>
+<pre class="err" style="font-size:3.2vh">{<span class="s">'erro'</span>: <span class="s">'true'</span>}</pre>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O servidor disse que deu tudo certo</div>
+    <h2>E dentro do envelope não tem endereço nenhum</h2>
+<pre class="err"><span class="k">if</span> r.status_code == <span class="k">200</span>:
+    usa_o_dado(r.json())   <span class="c"># ← teria usado</span></pre>
+    <p class="lead">Teria escrito no relatório, no banco, ou no e-mail do cliente: <strong>um endereço vazio</strong>.</p>
+    <p class="lead" style="color:var(--err)">Sem erro. Sem aviso. Sem stack trace.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Lembram da Aula 10?</div>
+    <h2>É o mesmo monstro, de roupa nova</h2>
+    <div class="cols">
+      <div class="col">
+        <div class="card"><span class="t">Aula 10 · pandas</span><span class="d">Calculou a média ignorando os vazios e devolveu um <strong>número errado com cara de número certo</strong></span></div>
+      </div>
+      <div class="col">
+        <div class="card"><span class="t">Hoje · API</span><span class="d">Devolveu <strong>sucesso com cara de sucesso</strong> e dado nenhum dentro</span></div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:1vh">Os erros que gritam são os baratos.<br>Os caros são estes: <span class="hl">os que passam</span>.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.8vh;max-width:34ch">Status 200 não quer dizer que deu certo.<br><br>Quer dizer que o servidor <strong>respondeu</strong>.</p>
+    <p class="lead dim" style="margin-top:2vh">Quem decide se deu certo é <strong>você</strong>, olhando o conteúdo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O conserto</div>
+    <h2>Duas checagens, não uma</h2>
+<pre class="good" style="font-size:2.3vh">dados = r.json()
+
+<span class="k">if</span> r.status_code != <span class="k">200</span>:
+    <span class="k">print</span>(<span class="s">"o servidor recusou:"</span>, r.status_code)
+<span class="k">elif</span> <span class="s">"erro"</span> <span class="k">in</span> dados:
+    <span class="k">print</span>(<span class="s">"CEP não encontrado"</span>)
+<span class="k">else</span>:
+    <span class="k">print</span>(dados[<span class="s">"logradouro"</span>], <span class="s">"-"</span>, dados[<span class="s">"localidade"</span>])</pre>
+    <p class="dim">Primeiro o status, <strong>depois o conteúdo</strong>. E <code>"erro" in dados</code> é o <code>in</code> de dicionário da Aula 7.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Não é bug do ViaCEP</div>
+    <h2>Para o servidor, nada deu errado</h2>
+    <p class="lead">Ele recebeu um pedido válido, consultou a base, não achou, e respondeu.</p>
+    <p class="lead">Do ponto de vista dele, <strong>a entrega foi perfeita</strong>.</p>
+    <p class="dim">Cada API escolhe o seu jeito. Você descobre lendo a documentação ou testando — de preferência os dois.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 2 · CEP <code>123</code></div>
+    <h2>Agora o <code>.json()</code> explode</h2>
+<pre class="err" style="font-size:2.3vh">400
+<span class="e">requests.exceptions.JSONDecodeError</span>: Expecting value:
+line 1 column 1 (char 0)</pre>
+<pre class="term" style="font-size:2.1vh"><span class="k">print</span>(r.text[:<span class="k">90</span>])
+
+&lt;!DOCTYPE HTML&gt;
+&lt;html lang="pt-br"&gt;
+&lt;head&gt;
+  &lt;title&gt;ViaCEP 400&lt;/title&gt;</pre>
+    <p class="dim">Veio <strong>HTML</strong>. O <code>.json()</code> tentou ler <code>&lt;</code> como JSON e desistiu na primeira letra.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O <code>try/except</code> da Aula 9</div>
+    <h2>Era zelo. Virou obrigação.</h2>
+<pre class="good" style="font-size:2.3vh"><span class="k">try</span>:
+    dados = r.json()
+<span class="k">except</span> requests.exceptions.JSONDecodeError:
+    <span class="k">print</span>(<span class="s">"o servidor não mandou JSON. Status:"</span>, r.status_code)
+    dados = <span class="k">None</span></pre>
+    <p class="lead"><code>JSONDecodeError</code> quase nunca é erro do seu código. É o servidor mandando <strong>outra coisa</strong>.</p>
+    <p class="dim">Seu programa agora depende de uma máquina que você não controla, numa rede que você não controla.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 3 · cotação do dólar</div>
+    <h2><code>429</code> — você pediu demais</h2>
+<pre class="err" style="font-size:2.1vh">429
+{<span class="k">"status"</span>:429,<span class="k">"code"</span>:<span class="s">"QuotaExceeded"</span>,
+ <span class="k">"message"</span>:<span class="s">"Quota exceeded. To continue using the
+ service, please see ..."</span>}</pre>
+    <p class="lead">Isso é de verdade — eu rodei na preparação e veio isso. <strong>Não tem nada de errado no código.</strong></p>
+    <p class="dim">Na máquina de vocês pode vir <code>200</code> com a cotação: o limite é contado por quem pede e quando.</p>
+  </section>
+
+  <section class="slide center">
+    <h1>Não existe API<br>de graça.</h1>
+    <p class="lead">Existe API que <strong>alguém paga</strong> e deixa você usar um pouquinho.</p>
+    <p class="lead hl">O 429 é o momento em que esse pouquinho acabou.</p>
+    <p class="dim">E quando vier 429, a resposta certa é <strong>esperar</strong>. Insistir só piora.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 4 · o travamento silencioso</div>
+    <h2>Quanto tempo o <code>get</code> espera?</h2>
+<pre class="err"><span class="e">ReadTimeout</span>: HTTPSConnectionPool(host=<span class="s">'viacep.com.br'</span>,
+port=443): Read timed out. (read timeout=0.001)</pre>
+    <p class="lead">Sem <code>timeout</code>, o padrão é esperar <strong>para sempre</strong>. Não é erro, é silêncio.</p>
+    <p class="lead hl">Todo <code>requests.get</code> da vida de vocês leva <code>timeout=</code>.</p>
+    <p class="dim">Semana que vem a gente agenda script para rodar de madrugada. Um <code>get</code> sem <code>timeout</code> lá dentro amanhece pendurado.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O 429 abriu a porta</div>
+    <h2>Como é que eles sabem que fui <em>eu</em>?</h2>
+    <p class="lead">Pelo endereço de internet, por enquanto. Que funciona mal: a sala toda sai pelo mesmo endereço.</p>
+    <p class="lead hl">Então eles pedem que você se identifique.</p>
+<pre class="term" style="font-size:2.1vh">requests.get(url,
+  headers={<span class="s">"Authorization"</span>: <span class="s">"Bearer sk-9f2c...a81"</span>},
+  timeout=<span class="k">10</span>)</pre>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Chave de API</div>
+    <h2>Uma senha que identifica o seu <em>programa</em></h2>
+    <table>
+      <tr><th>Serve para</th><th>Na prática</th></tr>
+      <tr><td class="mono">contar</td><td>saber quantas chamadas são suas, para aplicar o limite</td></tr>
+      <tr><td class="mono">cobrar</td><td>tier gratuito até X, pago depois</td></tr>
+      <tr><td class="mono">bloquear</td><td>se alguém abusar, desligam <strong>aquela</strong> chave</td></tr>
+      <tr><td class="mono">saber quem usa</td><td>o que mais chamam, o que podem desativar</td></tr>
+    </table>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A regra que vale o resto do curso</div>
+    <h2>A chave é sua. E gasta o seu dinheiro.</h2>
+    <ul>
+      <li class="no">Chave <strong>não vai</strong> dentro do código</li>
+      <li class="no">Chave <strong>não vai</strong> para o GitHub</li>
+      <li class="no">Chave <strong>não vai</strong> no print que você manda no grupo</li>
+    </ul>
+    <p class="lead" style="margin-top:1vh">Na <strong>Aula 14</strong> vocês vão ver que o git <strong>lembra para sempre</strong>.<br>Na <strong>Aula 18</strong> vocês terão uma chave de LLM na mão.</p>
+    <p class="dim">Hoje nada precisou de chave. De propósito: hoje era aprender a conversar.</p>
+  </section>
+
+  <section class="slide">
+    <span class="tag" style="align-self:flex-start">🛠️ Mão na massa · 20 min</span>
+    <h2>Buscador de CEP que não quebra</h2>
+    <ul>
+      <li class="n1">CEP certo → rua, bairro, cidade, UF</li>
+      <li class="n2">CEP que não existe → <em>"CEP não encontrado"</em></li>
+      <li class="n3">Malformado, servidor fora, internet caída → avisa <strong>sem stack trace na cara do usuário</strong></li>
+    </ul>
+<pre class="term" style="font-size:2.2vh">11013001   →  deve achar (Santos)
+99999999   →  não existe
+123        →  malformado</pre>
+    <p class="dim">Enquanto não passar nos três, não está pronto.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Solução de referência</div>
+    <h2>Devolve o dado <em>e</em> o problema</h2>
+<pre class="good" style="font-size:1.9vh"><span class="k">def</span> buscar_cep(cep):
+    cep = cep.strip().replace(<span class="s">"-"</span>, <span class="s">""</span>)
+    url = <span class="s">f"https://viacep.com.br/ws/{cep}/json/"</span>
+    <span class="k">try</span>:
+        r = requests.get(url, timeout=<span class="k">5</span>)
+    <span class="k">except</span> requests.exceptions.RequestException <span class="k">as</span> e:
+        <span class="k">return None</span>, <span class="s">f"não deu para falar com o servidor ({type(e).__name__})"</span>
+    <span class="k">if</span> r.status_code != <span class="k">200</span>:
+        <span class="k">return None</span>, <span class="s">f"o servidor recusou (status {r.status_code})"</span>
+    <span class="k">try</span>:
+        dados = r.json()
+    <span class="k">except</span> requests.exceptions.JSONDecodeError:
+        <span class="k">return None</span>, <span class="s">"o servidor não mandou JSON"</span>
+    <span class="k">if</span> <span class="s">"erro"</span> <span class="k">in</span> dados:
+        <span class="k">return None</span>, <span class="s">"CEP não encontrado"</span>
+    <span class="k">return</span> dados, <span class="k">None</span></pre>
+    <p class="lead">Devolve dois valores e <strong>não dá <code>print</code> de nada</strong>. <span class="hl">Função busca; quem chamou decide.</span></p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">🎁 Bônus · o pandas da Aula 10 volta</div>
+    <h2>Oito CEPs, duas falhas</h2>
+<pre class="term" style="font-size:2vh">situacao
+ok                                          6
+CEP não encontrado                          1
+o servidor recusou o pedido (status 400)    1</pre>
+    <p class="lead">O relatório ficou com buraco — e vocês sabem <strong>qual</strong> buraco e <strong>por quê</strong>.</p>
+    <p class="lead hl">Programa bom não esconde a falha. Localiza.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O que isso destrava</div>
+    <h2>Deixou de ser impossível. Virou uma tarde.</h2>
+    <ul>
+      <li class="yes"><strong>CEP, endereço, cotação, clima, feriado</strong> — dado público</li>
+      <li class="yes">Qualquer <strong>sistema do seu trabalho</strong> que tenha API</li>
+      <li class="yes"><strong>Juntar duas fontes</strong> que ninguém juntou ainda</li>
+      <li class="yes"><strong>Chamar IA de dentro do seu código</strong> — é a Aula 18</li>
+    </ul>
+    <p class="lead" style="margin-top:1vh"><code>get</code> · <code>status_code</code> · <code>.json()</code> · <code>params</code> · <code>timeout</code><br><span class="hl">Cinco coisas.</span> A API do ChatGPT se usa com essas mesmas cinco.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1">Terminar o buscador e <strong>provar que passa nos três CEPs</strong> — mande o print no grupo</li>
+      <li class="n2">Trocar o ViaCEP por <strong>outra API aberta</strong>: <code>brasilapi.com.br</code>, <code>open-meteo.com</code>, <code>agify.io</code></li>
+      <li class="n3">Achar uma API que resolva <strong>um problema seu</strong>. Mande o link e o que faria com ela</li>
+      <li class="n4"><strong>Desafio:</strong> completar a <code>clientes.csv</code> e salvar com a coluna <code>situacao</code></li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h1>E se eu quiser<br>que rode sozinho?</h1>
+    <p class="lead">Vocês têm um programa que busca dado de fora, trata os erros e monta relatório.<br>Isso é <strong>software de verdade</strong>.</p>
+    <p class="lead dim">Mas ele só roda quando vocês apertam o play.<br>E se a cotação precisa ser consultada todo dia às 9h, <strong>sem vocês</strong>?</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0, bar = document.getElementById('bar'), num = document.getElementById('num');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){ e.preventDefault(); show(i+1); }
+    else if (k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){ e.preventDefault(); show(i-1); }
+    else if (k==='Home'){ show(0); } else if (k==='End'){ show(slides.length-1); }
+    else if (k==='t'||k==='T'){ var el=document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme')==='light'?'dark':'light'); }
+    else if (k==='f'||k==='F'){ if(!document.fullscreenElement){document.documentElement.requestFullscreen();}
+      else {document.exitFullscreen();} }
+  });
+  document.getElementById('next').addEventListener('click', function(){ show(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i-1); });
+  var x0=null;
+  document.addEventListener('touchstart', function(e){ x0=e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){ show(dx<0?i+1:i-1); } x0=null;
+  }, {passive:true});
+  var start=parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>

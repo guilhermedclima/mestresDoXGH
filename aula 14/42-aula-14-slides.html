@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 14</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;-webkit-font-smoothing:antialiased}
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:5vh 7vw;gap:2.2vh}
+  .slide.active{display:flex;animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:6.5vh;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+  h2{font-size:4.6vh;line-height:1.12;font-weight:750;letter-spacing:-.015em}
+  h3{font-size:2.8vh;font-weight:700;color:var(--accent2)}
+  p{font-size:2.6vh;line-height:1.5;max-width:56ch}
+  p.lead{font-size:3.2vh;line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none;display:flex;flex-direction:column;gap:1.6vh}
+  li{font-size:2.6vh;line-height:1.4;padding-left:1.5em;position:relative;max-width:58ch}
+  li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+  li.yes::before{content:"✓";color:var(--ok)}
+  li.no::before{content:"✕";color:var(--err)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."} li.n4::before{content:"4."}
+
+  pre{background:var(--code-bg);border:1px solid var(--border);border-left:4px solid var(--accent);
+    border-radius:8px;padding:2.2vh 2.4vh;font-size:2.6vh;line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;overflow:auto;max-width:min(90vw,64ch)}
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  pre.term{border-left-color:var(--accent2)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)}
+  .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex;gap:2.5vw;flex-wrap:wrap;width:100%;align-items:flex-start}
+  .col{flex:1 1 0;min-width:250px;display:flex;flex-direction:column;gap:1.2vh}
+  .col pre{font-size:2.1vh;max-width:none;width:100%}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:2vh 2.2vh;display:flex;flex-direction:column;gap:.8vh}
+  .card .t{font-size:2.2vh;font-weight:700;color:var(--accent)}
+  .card .d{font-size:1.9vh;color:var(--dim);line-height:1.4}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.6vh;width:100%}
+  .big{font-size:9vh;font-weight:800;line-height:1;color:var(--accent)}
+  .quote{border-left:4px solid var(--accent);padding-left:2.4vh;font-size:3.4vh;line-height:1.35;
+    font-style:italic;max-width:48ch}
+  .center{align-items:center;text-align:center;justify-content:center}
+  .center ul{align-items:flex-start} .center pre{text-align:left}
+  .tag{display:inline-block;font-size:1.6vh;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--bg);background:var(--accent);padding:.4em .9em;border-radius:100px}
+  .tag.ia{background:var(--accent2);color:#fff}
+
+  table{border-collapse:collapse;font-size:2.3vh}
+  td,th{padding:1vh 1.8vh;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--accent);font-size:1.8vh;letter-spacing:.06em;text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--accent2);font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div><div id="title">Mestres do XGH · Aula 14</div><div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div><div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <section class="slide center">
+    <div class="kicker">Aula 14 · 14 de novembro · abre o Projeto 2</div>
+    <h1>Git e GitHub</h1>
+    <p class="lead dim">A máquina do tempo do seu código.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Sábado passado</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes">O script virou arquivo <code>.py</code> e roda pelo terminal</li>
+      <li class="yes"><code>logging</code> em arquivo — porque script das 3h falha calado</li>
+      <li class="yes">A pergunta nova: <strong>e se isto rodar duas vezes?</strong></li>
+      <li class="no">E a dívida: <em>"mexi em alguma coisa e não sei o quê"</em></li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">A dívida</span>
+    <h1>Mudei alguma coisa<br>e não sei o quê</h1>
+    <p class="lead dim">Mexeu, ficou pior, e não sabe voltar.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A solução que todo mundo inventa sozinho</div>
+    <h2>A pasta do horror</h2>
+<pre style="font-size:2.3vh">organiza.py
+organiza_FINAL.py
+organiza_FINAL_agora_vai (1).py
+organiza_FINAL_agora_vai.py
+organiza_backup_ontem.py
+organiza_v2.py
+organiza_v2_ok.py</pre>
+  </section>
+
+  <section class="slide center">
+    <h2>Três perguntas</h2>
+    <ul>
+      <li class="n1">Qual desses é o <strong>mais novo</strong>?</li>
+      <li class="n2">O que mudou entre o <code>_v2</code> e o <code>_v2_ok</code>?</li>
+      <li class="n3"><strong>Por que</strong> você fez essa mudança?</li>
+    </ul>
+    <p class="lead" style="margin-top:1vh">Você não sabe nenhuma.</p>
+    <p class="lead hl">E o arquivo é seu, de ontem.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A única teoria da aula</div>
+    <h2>Os três lugares onde seu código mora</h2>
+    <table>
+      <tr><th>Lugar</th><th>O que é</th><th>Leva adiante</th></tr>
+      <tr><td><strong>Pasta de trabalho</strong></td><td>os arquivos como estão na sua tela</td><td class="mono">git add</td></tr>
+      <tr><td><strong>Área de preparo</strong></td><td>o rascunho do próximo commit</td><td class="mono">git commit</td></tr>
+      <tr><td><strong>Histórico</strong></td><td>a fila de commits, com autor, data e motivo</td><td>—</td></tr>
+    </table>
+    <p class="dim" style="margin-top:1vh">Git não é ferramenta de equipe grande. É <strong>memória</strong> para uma pessoa só.<br><code>git status</code> é a pergunta <em>"onde está cada coisa agora?"</em></p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Nada de nuvem ainda</div>
+    <h2><code>git init</code> cria uma <em>pasta</em></h2>
+<pre class="term" style="font-size:2.3vh">$ git init -b main
+Initialized empty Git repository in
+.../organizador/<span class="hl">.git/</span></pre>
+    <p>O repositório é uma pasta escondida <code>.git</code> dentro do projeto. Sem conta, sem internet.</p>
+    <p class="dim">Apagou a pasta <code>.git</code>? Acabou o histórico.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O comando que você vai rodar 40 vezes hoje</div>
+    <h2><code>git status</code></h2>
+<pre class="term" style="font-size:2vh;max-width:none">On branch main
+
+No commits yet
+
+<span class="e">Untracked files:</span>
+  (use "git add &lt;file&gt;..." to include in what will be committed)
+	organiza.py
+
+nothing added to commit but untracked files present</pre>
+    <p class="lead"><span class="hl">Untracked.</span> O git não versiona nada sozinho — só o que você mandar.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">git add · escolher o que entra</div>
+    <h2>Em terminal, silêncio é bom sinal</h2>
+    <div class="cols">
+      <div class="col">
+<pre class="term" style="font-size:2vh">$ git add organiza.py
+<span class="c">(sem saída)</span>
+
+$ git status --short
+A  organiza.py</pre>
+      </div>
+      <div class="col">
+        <table style="font-size:1.9vh">
+          <tr><td class="mono">??</td><td>o git não conhece</td></tr>
+          <tr><td class="mono">A</td><td>novo, já preparado</td></tr>
+          <tr><td class="mono">_M</td><td>modificado, não preparado</td></tr>
+          <tr><td class="mono">M_</td><td>modificado e preparado</td></tr>
+        </table>
+      </div>
+    </div>
+    <p class="dim"><code>git add .</code> adiciona tudo. É o que todo mundo usa — e é por isso que todo mundo um dia commita o que não devia.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">git commit · fechar o pacote</div>
+    <h2>O hash é o nome do commit</h2>
+<pre class="good" style="font-size:2vh">$ git commit -m "organizador move arquivo para subpasta
+                 por extensao"
+[main (root-commit) <span class="hl">cbee89e</span>] organizador move arquivo...
+ 1 file changed, 13 insertions(+)
+
+$ git log --oneline
+<span class="hl">cbee89e</span> organizador move arquivo para subpasta por extensao</pre>
+    <p class="dim">Sete caracteres do começo já bastam para você se referir a ele.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.8vh;max-width:34ch">Commit é um ponto de retorno.<br><br>O resto é <strong>coragem</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A dívida sendo paga · git diff</div>
+    <h2>O que <em>exatamente</em> eu mudei</h2>
+<pre style="font-size:1.75vh;line-height:1.45;max-width:none">@@ -1,11 +1,14 @@
+ import sys, shutil
+ from pathlib import Path
+
+<span class="e">-def organizar(pasta):</span>
+<span class="s">+def organizar(pasta, simular=False):</span>
+     pasta = Path(pasta)
+     for arquivo in pasta.iterdir():
+         if arquivo.is_file():
+             destino = pasta / arquivo.suffix.lstrip(".").lower()
+<span class="s">+            if simular:</span>
+<span class="s">+                print(f"moveria {arquivo.name} -&gt; {destino.name}/")</span>
+<span class="s">+                continue</span>
+             destino.mkdir(exist_ok=True)
+             shutil.move(str(arquivo), str(destino / arquivo.name))</pre>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Como ler</div>
+    <h2>Uma linha saiu, quatro entraram</h2>
+    <ul>
+      <li><code>---</code> é como estava · <code>+++</code> é como está</li>
+      <li><code>@@ -1,11 +1,14 @@</code> — eram 11 linhas, agora são 14</li>
+      <li><span class="e">−</span> saiu · <span class="s">+</span> entrou · sem nada na frente: só contexto</li>
+    </ul>
+    <p class="lead hl" style="margin-top:1vh">Rode <code>git diff</code> antes de todo <code>git add</code>.</p>
+    <p class="dim">É a última chance de ver aquele <code>print("teste 123")</code> que ficou no código.<br>E a mensagem do commit não repete o diff: ela diz <strong>para que</strong> o modo simulação existe.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Depois de algumas execuções</div>
+    <h2>Qual desses três é o <em>seu código</em>?</h2>
+<pre class="err" style="font-size:2.3vh">$ git status --short
+?? .venv/
+?? __pycache__/
+?? organiza.log</pre>
+    <p class="lead">Nenhum.</p>
+    <p class="dim">Cache que o Python refaz · o <code>venv</code> que a Aula 11 prometeu · o log da Aula 13.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">.gitignore · uma regra por linha</div>
+    <h2>E eles somem do <code>status</code></h2>
+    <div class="cols">
+      <div class="col"><h3>O arquivo</h3>
+<pre style="font-size:2.1vh">__pycache__/
+.venv/
+*.log</pre></div>
+      <div class="col"><h3>O resultado</h3>
+<pre class="good" style="font-size:2.1vh">$ git status --short
+?? .gitignore</pre></div>
+    </div>
+    <p>O <code>.gitignore</code> <strong>entra</strong> no commit: a regra também é parte do projeto.</p>
+    <p class="dim">Ignorar é dizer ao <em>git</em> para não olhar — não ao computador para apagar.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">A regra</div>
+    <h1>Gerado, baixado,<br>pesado ou <span class="hl">secreto</span>:<br>não vai para o git</h1>
+    <p class="lead dim">Segura a última palavra. Depois do café.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="big">☕</div><h1>Pausa</h1><p class="lead dim">10 minutos.</p>
+    <p class="dim">Quem ainda não tem conta no GitHub cria agora — leva 3 minutos e não pede cartão.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">💥 Quebrar de propósito · nº 1</span>
+    <h1>O git lembra<br>para sempre</h1>
+    <p class="lead dim">O bloco mais importante da aula.<br>Você vai ver a saída na tela — não precisa acreditar em mim.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A história que acontece toda semana</div>
+    <h2>A chave entra no commit</h2>
+<pre class="err" style="font-size:2.1vh"><span class="c"># config.py</span>
+CHAVE_API = <span class="s">"xgh-live-8f3b91d04c7a4e26"</span>
+CHAT_ID   = <span class="s">"-1001998877665"</span></pre>
+<pre class="term" style="font-size:2vh">$ git commit -m "avisa no telegram quando terminar"
+[main 54269bb] avisa no telegram quando terminar
+ create mode 100644 config.py</pre>
+    <p class="dim">Você commitou junto porque senão o programa não roda.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Duas semanas depois · o conserto certo</div>
+    <h2>Tirar, ignorar, deixar um exemplo</h2>
+<pre class="good" style="font-size:2vh">$ git rm --cached config.py
+rm 'config.py'
+
+$ git commit -m "tira a chave do repositorio"
+[main a7d9005] tira a chave do repositorio
+ delete mode 100644 config.py
+
+$ git status
+nothing to commit, working tree clean</pre>
+    <p class="dim">É aqui que todo mundo respira aliviado e vai dormir.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.8vh;max-width:36ch">O commit não é um <em>save</em>.<br><br>É uma <strong>foto</strong>.<br><br>Apagar o arquivo hoje não apaga a foto de ontem.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 Um comando. Qualquer pessoa com acesso ao repo.</div>
+    <h2><code>git log -p -- config.py</code></h2>
+<pre class="err" style="font-size:1.75vh;line-height:1.45">commit a7d9005  <span class="c">tira a chave do repositorio</span>
+
+diff --git a/config.py b/config.py
+deleted file mode 100644
+<span class="e">-CHAVE_API = "xgh-live-8f3b91d04c7a4e26"</span>
+<span class="e">-CHAT_ID = "-1001998877665"</span>
+
+commit 54269bb  <span class="c">avisa no telegram quando terminar</span>
+
+diff --git a/config.py b/config.py
+new file mode 100644
+<span class="s">+CHAVE_API = "xgh-live-8f3b91d04c7a4e26"</span>
+<span class="s">+CHAT_ID = "-1001998877665"</span></pre>
+  </section>
+
+  <section class="slide center">
+    <h1>A chave aparece<br><span class="hl">duas vezes</span></h1>
+    <p class="lead">No commit em que ela entrou, com <code>+</code>.</p>
+    <p class="lead">E no commit em que você a <strong>apagou</strong>, com <code>−</code>.</p>
+    <p class="lead dim">Porque para o diff mostrar que uma linha saiu,<br>ele <strong>tem que dizer qual linha era</strong>.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="big">0,004 s</div>
+    <p class="lead">foi o que custou recuperar a chave que você <em>acha</em> que apagou</p>
+    <p class="dim">E tem robô fazendo isso 24 horas por dia em cima de tudo que é público no GitHub.<br>Chave em repositório novo é achada em <strong>minutos</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">E não para no diff</div>
+    <h2>O arquivo inteiro está lá</h2>
+    <div class="cols">
+      <div class="col">
+<pre class="err" style="font-size:1.8vh">$ git show 54269bb:config.py
+CHAVE_API = "xgh-live-8f3b91d04c7a4e26"
+CHAT_ID = "-1001998877665"</pre></div>
+      <div class="col">
+<pre class="err" style="font-size:1.8vh">$ git grep -n xgh-live $(git rev-list --all)
+54269bb:config.py:1:CHAVE_API = "xgh-live..."</pre></div>
+    </div>
+    <p class="lead">Cinco commits varridos, um comando, resultado na hora.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O que fazer de verdade · a ordem importa</div>
+    <h2>Chave vazada não tem conserto. Tem <em>substituição</em>.</h2>
+    <ul>
+      <li class="n1"><strong>Revogue a chave</strong> no painel do provedor. Só isso resolve</li>
+      <li class="n2">Gere outra e guarde <strong>fora</strong> do repositório</li>
+      <li class="n3">Commite o <code>.gitignore</code> e um <code>config.exemplo.py</code> sem segredo</li>
+      <li class="n4">Só então pense em reescrever o histórico — é cirurgia, e <strong>não desfaz quem já copiou</strong></li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <span class="tag ia">🌱 Semente da Aula 18</span>
+    <h2>Hoje a chave é falsa.<br>Na Aula 18 ela é de verdade.</h2>
+    <p class="lead">Uma chave de LLM, que chama modelo de linguagem — e que, se alguém pegar, <strong>gasta na conta de vocês</strong>.</p>
+    <p class="lead hl">A primeira pergunta daquela aula vai ser: onde você guardou a chave?</p>
+    <p class="dim">O segredo mais seguro do mundo é o que nunca entrou num commit.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 2 · mesmas mudanças de código, mensagens diferentes</div>
+    <h2>Em qual commit entrou o modo simulação?</h2>
+    <div class="cols">
+      <div class="col"><h3>💥 Ruim</h3>
+<pre class="err" style="font-size:1.8vh">d35051a fix
+9fa33c0 correcoes
+20ca3c0 update
+dd28f7d agora vai
+1139313 teste
+9520dc5 ajustes</pre></div>
+      <div class="col"><h3>✓ Bom</h3>
+<pre class="good" style="font-size:1.6vh">739355e nao refaz o que ja foi feito: rodar
+        duas vezes nao duplica
+12475bc caminho absoluto: o relativo quebrava
+        no agendador
+55ed99e log em arquivo: script das 3h tem que
+        deixar rastro
+124f01c ignora cache, venv e log
+05b1614 modo simulacao: testar sem mover nada
+dcaaf24 organizador move arquivo por extensao</pre></div>
+    </div>
+    <p class="dim">A informação não está escondida — ela <strong>nunca foi escrita</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A regra</div>
+    <h2>A mensagem responde <em>por quê</em></h2>
+    <table>
+      <tr><td><strong>O quê</strong> mudou</td><td>o <code>diff</code> já mostra — não repita</td></tr>
+      <tr><td><strong>Por quê</strong> mudou</td><td>só você sabe — <strong>é isso que vai na mensagem</strong></td></tr>
+    </table>
+    <p class="lead" style="margin-top:1vh">Teste: a frase faz sentido depois de <em>"este commit..."</em>?</p>
+    <ul>
+      <li class="no">este commit <em>ajustes</em></li>
+      <li class="yes">este commit <em>faz o caminho ser absoluto porque o relativo quebrava no agendador</em></li>
+    </ul>
+    <p class="dim">Não consegue resumir numa linha? O commit está fazendo cinco coisas.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 3 · o colega clonou</div>
+    <h2>Clonar e não rodar</h2>
+<pre class="err" style="font-size:1.9vh">$ git clone .../organizador
+$ python avisa.py
+
+Traceback (most recent call last):
+  File "avisa.py", line 1, in &lt;module&gt;
+    import schedule, time
+<span class="e">ModuleNotFoundError</span>: No module named <span class="s">'schedule'</span></pre>
+    <p>O erro nº 1 da Aula 11 de volta — agora na máquina de <strong>outra pessoa</strong>, que não sabe o que instalar.</p>
+    <p class="lead hl">Falta o <code>requirements.txt</code>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">E tem um segundo motivo</div>
+    <h2>O segredo <em>não veio</em> no clone — e está certo</h2>
+<pre class="err" style="font-size:2vh">&gt;&gt;&gt; from config import CHAVE_API
+<span class="e">ModuleNotFoundError</span>: No module named <span class="s">'config'</span></pre>
+    <table style="font-size:2vh">
+      <tr><th>O que falta</th><th>O que resolve</th></tr>
+      <tr><td>as bibliotecas</td><td class="mono">requirements.txt</td></tr>
+      <tr><td>o arquivo de segredo</td><td class="mono">config.exemplo.py + README</td></tr>
+      <tr><td>saber o que é e como rodar</td><td class="mono">README.md</td></tr>
+    </table>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Agora sim, a internet</div>
+    <h2>git ≠ GitHub</h2>
+    <table>
+      <tr><td><strong>git</strong></td><td>o programa que guarda o histórico, no seu computador</td></tr>
+      <tr><td><strong>GitHub</strong></td><td>um site que hospeda repositórios git</td></tr>
+    </table>
+<pre class="term" style="font-size:1.9vh;max-width:none">git remote add origin https://github.com/SEU-USUARIO/organizador.git
+git push -u origin main</pre>
+    <p class="dim"><code>origin</code> é só um apelido para o endereço.<br><code>-u origin main</code> liga os dois — da segunda vez em diante é só <code>git push</code>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Vai acontecer com vocês hoje</div>
+    <h2>A senha que não é senha</h2>
+    <p class="lead">O GitHub <strong>não aceita</strong> mais a senha da conta no <code>git push</code>.</p>
+<pre class="term" style="font-size:1.9vh">Settings → Developer settings → Personal access tokens
+→ Tokens (classic) → Generate new token → escopo <span class="hl">repo</span></pre>
+    <p>Usuário é o seu login. <strong>Senha é o token.</strong></p>
+    <p class="dim" style="color:var(--err)">E esse token é exatamente o tipo de coisa do bloco anterior: nunca em arquivo, nunca em commit, nunca no grupo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">🔑 Para o quadro, até o fim do curso</div>
+    <h2>O ciclo de cinco comandos</h2>
+<pre class="good" style="font-size:2.3vh">git status      <span class="c"># onde está cada coisa</span>
+git diff        <span class="c"># o que exatamente eu mudei</span>
+git add .       <span class="c"># escolho o que entra</span>
+git commit -m <span class="s">"por que eu mudei"</span>
+git push        <span class="c"># manda para o GitHub</span></pre>
+    <p class="lead">É isso que 95% do uso de git é. Para sempre.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A capa do seu projeto</div>
+    <h2>Um <code>README.md</code> que presta</h2>
+    <div class="grid">
+      <div class="card"><span class="t">1 · O que é</span><span class="d">Uma frase. Sem "este projeto tem como objetivo"</span></div>
+      <div class="card"><span class="t">2 · Como instalar</span><span class="d">Comandos copiáveis, não "instale as dependências"</span></div>
+      <div class="card"><span class="t">3 · Como rodar</span><span class="d">A linha de comando exata</span></div>
+      <div class="card"><span class="t">4 · Como agendar</span><span class="d">Agendador do Windows ou <code>cron</code></span></div>
+      <div class="card"><span class="t">5 · Detalhes</span><span class="d">O segredo a criar, a versão do Python, o caso chato</span></div>
+    </div>
+    <p class="dim">Teste: entregue o link para alguém e fique calado. A pergunta que a pessoa fizer <strong>é</strong> a linha que falta.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">🛠️ Projeto 2 · entrega na Aula 16 · um link de repositório</div>
+    <h2>Critérios de aceite</h2>
+    <table style="font-size:1.95vh">
+      <tr><th>#</th><th>Critério</th><th>Como eu confiro</th></tr>
+      <tr><td class="mono">1</td><td><strong>Roda sozinho</strong> — é um <code>.py</code>, recebe o que precisa por argumento</td><td>rodo pelo terminal</td></tr>
+      <tr><td class="mono">2</td><td><strong><code>README.md</code></strong> — o que é, como instalar, como rodar</td><td>leio e uso sem te perguntar</td></tr>
+      <tr><td class="mono">3</td><td><strong><code>requirements.txt</code></strong></td><td>clono num ambiente limpo</td></tr>
+      <tr><td class="mono">4</td><td><strong><code>.gitignore</code></strong> — sem cache, sem venv, sem log, <strong>sem segredo</strong></td><td>abro a lista de arquivos</td></tr>
+      <tr><td class="mono">5</td><td><strong>Sobrevive a rodar duas vezes sem duplicar nada</strong></td><td>rodo duas vezes e comparo</td></tr>
+      <tr><td class="mono">6</td><td><strong>Histórico legível</strong> — 5 commits que dizem <em>por quê</em></td><td class="mono">git log --oneline</td></tr>
+    </table>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">O critério que mais reprova</div>
+    <h1>Rode duas vezes<br>e <span class="hl">olhe o resultado</span></h1>
+    <p class="lead">Linha repetida no relatório, arquivo duplicado, e-mail mandado duas vezes, erro na segunda — <strong>não está pronto</strong>.</p>
+    <p class="lead dim">As duas saídas são as de sábado passado:<br>verificar antes de agir, ou marcar o que já foi feito.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O que isso destrava</div>
+    <h2>Você não ficou melhor em Python hoje</h2>
+    <ul>
+      <li class="yes"><strong>Mexer no código sem medo.</strong> Quebrou? Volta</li>
+      <li class="yes">Trabalhar na mesma coisa <strong>de dois computadores</strong></li>
+      <li class="yes"><strong>Ter o que mostrar.</strong> Link de repositório é portfólio: código seu, com data</li>
+      <li class="yes"><strong>Pegar código do mundo</strong> com <code>git clone</code></li>
+      <li class="yes">Guardar segredo no lugar certo — o que a Aula 18 vai exigir</li>
+    </ul>
+    <p class="lead" style="margin-top:1vh">Você ficou com <span class="hl">direito de errar</span>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><strong>Publique um repositório</strong> com <code>README.md</code>, <code>.gitignore</code> e <code>requirements.txt</code>. Link no grupo</li>
+      <li class="n2"><strong>Cinco commits</strong> que passam no teste do <em>"este commit..."</em></li>
+      <li class="n3"><strong>Abra o repositório de um colega</strong> e tente rodar sem perguntar nada. Mande no privado a primeira coisa que te travou</li>
+      <li class="n4">Rode o seu script <strong>duas vezes seguidas</strong> e conte no grupo o que aconteceu</li>
+    </ul>
+    <p class="dim"><strong>Desafio:</strong> na documentação do git, qual é a diferença entre <code>git restore</code> e <code>git revert</code>?</p>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h1>E se eu não<br>souber a regra?</h1>
+    <p class="lead">Em quatorze aulas, <strong>cada decisão foi você quem escreveu</strong>:<br><code>if nota &gt;= 7</code> · <code>if extensao == ".pdf"</code> · <code>if status_code == 200</code></p>
+    <p class="lead dim">Dez mil e-mails, metade spam, e ninguém no mundo consegue escrever o <code>if</code> que separa os dois.</p>
+    <p class="lead hl">Como o programa decide a partir do dado,<br>e não da regra que eu escrevi?</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0, bar = document.getElementById('bar'), num = document.getElementById('num');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){ e.preventDefault(); show(i+1); }
+    else if (k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){ e.preventDefault(); show(i-1); }
+    else if (k==='Home'){ show(0); } else if (k==='End'){ show(slides.length-1); }
+    else if (k==='t'||k==='T'){ var el=document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme')==='light'?'dark':'light'); }
+    else if (k==='f'||k==='F'){ if(!document.fullscreenElement){document.documentElement.requestFullscreen();}
+      else {document.exitFullscreen();} }
+  });
+  document.getElementById('next').addEventListener('click', function(){ show(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i-1); });
+  var x0=null;
+  document.addEventListener('touchstart', function(e){ x0=e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){ show(dx<0?i+1:i-1); } x0=null;
+  }, {passive:true});
+  var start=parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>

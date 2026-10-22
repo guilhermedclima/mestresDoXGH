@@ -108,9 +108,9 @@ Sem prazo fechado — avança quando a turma acompanha. A numeração é referê
 | Aula | Tema | O aluno sai sabendo |
 |---|---|---|
 | 11 | Bibliotecas e `pip` ✅ | Usar código que outras pessoas escreveram |
-| 12 | APIs e `requests` | Buscar dados da internet dentro do programa |
-| 13 | Automação de verdade | Um script que faz sozinho algo chato que você faria na mão |
-| 14 | Git e GitHub + **Projeto 2** | Versionar e publicar o próprio código |
+| 12 | APIs e `requests` ✅ | Buscar dados da internet dentro do programa |
+| 13 | Automação de verdade ✅ | Um script que faz sozinho algo chato que você faria na mão |
+| 14 | Git e GitHub + **Projeto 2** ✅ | Versionar e publicar o próprio código |
 
 **Projeto 2:** uma automação pessoal — organizar arquivos, monitorar preço, relatório automático de uma planilha.
 
@@ -185,7 +185,11 @@ Ensinar é a forma mais eficiente de descobrir o que você só *acha* que entend
 - [ ] Grupo de mensagens ativo com o material da Aula 1
 - [ ] `duvidas-da-turma.md` iniciado
 - [x] Aula 11 preparada (24/10) — bibliotecas e `pip`. **Primeira do formato novo: sem pílula, mais teclado**
-- [ ] **Próxima a preparar: Aula 12 — APIs e `requests`**
+- [x] Aula 12 preparada (31/10) — APIs e `requests`. **Status 200 não quer dizer que deu certo**
+- [x] Aula 13 preparada (07/11) — automação. **Idempotência: 13 arquivos entram, 12 saem**
+- [x] Aula 14 preparada (14/11) — Git e GitHub. **O git lembra a chave para sempre** — semente da Aula 18
+- [x] Aula 15 preparada (21/11) — ML de verdade, **abre o Módulo 4**. Dummy bate 0.95 num problema 95/5
+- [ ] **Próxima a preparar: Aula 16 — primeiro modelo com `scikit-learn`**
 - [ ] Ver `ARCO-aulas-11-20.md` — desenho do bloco 11 a 20, com a decisão da chave de API
 
 ### A corrente de dívidas montada
@@ -203,3 +207,6 @@ Cada aula abre pagando a pergunta deixada na anterior:
 | 10 | as 5.000 linhas | "quem escreveu o pandas? como pego outras bibliotecas?" |
 | 11 | essa pergunta | "instalei uma que busca dado da internet — de onde vem esse dado?" |
 | 12 | de onde vem o dado | "só roda quando eu aperto o play" |
+| 13 | rodar sozinho | "rodei duas vezes e duplicou. e mudei algo e não sei o quê" |
+| 14 | não saber o que mudou | "quero que o programa decida a partir do dado" |
+| 15 | regra escrita vs. aprendida | "ok, mas como ele decide por dentro?" |

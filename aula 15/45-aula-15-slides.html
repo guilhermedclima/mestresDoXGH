@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 15</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;-webkit-font-smoothing:antialiased}
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:5vh 7vw;gap:2.2vh}
+  .slide.active{display:flex;animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:6.5vh;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+  h2{font-size:4.6vh;line-height:1.12;font-weight:750;letter-spacing:-.015em}
+  h3{font-size:2.8vh;font-weight:700;color:var(--accent2)}
+  p{font-size:2.6vh;line-height:1.5;max-width:56ch}
+  p.lead{font-size:3.2vh;line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none;display:flex;flex-direction:column;gap:1.6vh}
+  li{font-size:2.6vh;line-height:1.4;padding-left:1.5em;position:relative;max-width:58ch}
+  li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+  li.yes::before{content:"✓";color:var(--ok)}
+  li.no::before{content:"✕";color:var(--err)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."} li.n4::before{content:"4."}
+
+  pre{background:var(--code-bg);border:1px solid var(--border);border-left:4px solid var(--accent);
+    border-radius:8px;padding:2.2vh 2.4vh;font-size:2.6vh;line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;overflow:auto;max-width:min(90vw,64ch)}
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  pre.term{border-left-color:var(--accent2)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)}
+  .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex;gap:2.5vw;flex-wrap:wrap;width:100%;align-items:flex-start}
+  .col{flex:1 1 0;min-width:250px;display:flex;flex-direction:column;gap:1.2vh}
+  .col pre{font-size:2.1vh;max-width:none;width:100%}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:2vh 2.2vh;display:flex;flex-direction:column;gap:.8vh}
+  .card .t{font-size:2.2vh;font-weight:700;color:var(--accent)}
+  .card .d{font-size:1.9vh;color:var(--dim);line-height:1.4}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.6vh;width:100%}
+  .big{font-size:9vh;font-weight:800;line-height:1;color:var(--accent)}
+  .quote{border-left:4px solid var(--accent);padding-left:2.4vh;font-size:3.4vh;line-height:1.35;
+    font-style:italic;max-width:48ch}
+  .center{align-items:center;text-align:center;justify-content:center}
+  .center ul{align-items:flex-start} .center pre{text-align:left}
+  .tag{display:inline-block;font-size:1.6vh;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--bg);background:var(--accent);padding:.4em .9em;border-radius:100px}
+  .tag.ia{background:var(--accent2);color:#fff}
+
+  table{border-collapse:collapse;font-size:2.3vh}
+  td,th{padding:1vh 1.8vh;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--accent);font-size:1.8vh;letter-spacing:.06em;text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--accent2);font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div><div id="title">Mestres do XGH · Aula 15</div><div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div><div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <section class="slide center">
+    <div class="kicker">Aula 15 · 21 de novembro · Módulo 3</div>
+    <h1>Machine learning<br>de verdade</h1>
+    <p class="lead dim">Treinar é a parte fácil.<br>Acreditar no número é que é difícil.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Sábado passado</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes"><code>git init</code>, <code>add</code>, <code>commit</code>, <code>push</code> — e o git lembra para sempre</li>
+      <li class="yes">Mensagem de commit responde <strong>por quê</strong>; o diff já mostra o quê</li>
+      <li class="yes">Projeto 2 no ar, com <code>README</code> e <code>requirements.txt</code></li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">E vocês terminaram a aula com uma pergunta.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">A dívida</span>
+    <h1>Tudo que eu fiz<br>foi regra que <span class="hl">eu</span> escrevi</h1>
+    <p class="lead dim">Como eu faço o programa decidir<br>a partir do <strong>dado</strong>?</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Aula 3 · terceira aula do curso</div>
+    <h2>Vocês já fizeram isso uma vez</h2>
+<pre><span class="k">if</span> <span class="s">"promoção"</span> <span class="k">in</span> mensagem <span class="k">and</span> <span class="s">"clique aqui"</span> <span class="k">in</span> mensagem:
+    <span class="k">print</span>(<span class="s">"spam"</span>)</pre>
+    <p>Funcionava. Depois eu mostrei um modelo aprendendo a mesma coisa com <strong>16 exemplos</strong> e ninguém entendeu nada.</p>
+    <p class="lead hl">Hoje é a mesma coisa. Com rigor.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.4vh;max-width:42ch">Classificador é um <code>if</code> cujo limiar <strong>ninguém escreveu</strong>.<br><br>O computador procura o corte no dado. Não tem mais mágica que isso.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Quatro palavras</div>
+    <h2>O vocabulário que destrava tudo</h2>
+    <table>
+      <tr><th>Palavra</th><th>O que é</th><th>Hoje</th></tr>
+      <tr><td class="mono">feature</td><td>uma coluna de entrada</td><td><code>tem_link</code>, <code>hora</code></td></tr>
+      <tr><td class="mono">rótulo</td><td>a resposta a prever</td><td><code>spam</code> (0 ou 1)</td></tr>
+      <tr><td class="mono">treino</td><td>o que o modelo vê</td><td>300 mensagens</td></tr>
+      <tr><td class="mono">teste</td><td>o que ele <strong>não</strong> vê</td><td>100 mensagens</td></tr>
+    </table>
+    <p class="dim"><code>X</code> são as features, <code>y</code> é o rótulo. É a convenção de todo tutorial do mundo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O dado de hoje · gerado na célula 0</div>
+    <h2>Tudo é número</h2>
+<pre style="font-size:1.7vh;max-width:none">   tem_link  tem_promocao  qtd_emoji  tamanho  hora  remetente_desconhecido  moderador_apagou  spam
+0         1             0          1       76     8                       1                 0     0
+1         1             1          1      156    19                       0                 1     1
+2         1             0          5      274    12                       1                 1     1</pre>
+    <p>O modelo <strong>não lê texto</strong>. Na Aula 3 vocês também não liam a frase — olhavam se continha uma palavra.</p>
+    <p class="lead dim">É a mesma ideia, com nome bonito: <strong>feature</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Antes de treinar nada</div>
+    <h2>Quanto acerta a regra da Aula 3?</h2>
+<pre class="term">regra ingenua       : 0.72
+regra de pontos     : 0.8</pre>
+    <p>Medidas nas <strong>mesmas 100 mensagens</strong> de teste que o modelo vai usar.</p>
+    <p class="lead hl">Esse é o chão da aula.</p>
+    <p class="dim">Ninguém mais aqui vai poder dizer "meu modelo é bom" sem bater nesses números.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Três linhas</div>
+    <h2>Separar treino de teste</h2>
+<pre><span class="k">from</span> sklearn.model_selection <span class="k">import</span> train_test_split
+
+X_treino, X_teste, y_treino, y_teste = train_test_split(
+    X, y, test_size=<span class="k">0.25</span>, random_state=<span class="k">15</span>, stratify=y)</pre>
+    <ul style="gap:1vh">
+      <li><code>test_size=0.25</code> — um quarto fica de fora</li>
+      <li><code>random_state=15</code> — o sorteio é o mesmo toda vez</li>
+      <li><code>stratify=y</code> — mesma proporção dos dois lados</li>
+    </ul>
+    <p class="lead">Essas 100 o modelo <span class="hl">nunca</span> vê no treino. É o único jeito de saber se ele aprendeu ou só decorou.</p>
+    <p class="dim">Pegadinha da Aula 11: instala <code>scikit-learn</code>, importa <code>sklearn</code>. Com <code>import scikit_learn</code> dá <code>ModuleNotFoundError</code>; com hífen, <code>SyntaxError</code>.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">💥 Quebrar de propósito</span>
+    <h1>Os três erros</h1>
+    <p class="lead dim">Nenhum deles dá mensagem de erro.<br>Todos os três dão número bonito.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 1 · quatro linhas de código</div>
+    <h2>Acurácia no treino</h2>
+<pre class="good">modelo = DecisionTreeClassifier(random_state=<span class="k">15</span>)
+modelo.fit(X_treino, y_treino)
+
+<span class="k">print</span>(accuracy_score(y_treino, modelo.predict(X_treino)))</pre>
+    <div class="big" style="font-size:11vh">1.0</div>
+    <p class="lead">Cem por cento. Posso cobrar mais caro pelo curso.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">E agora nas 100 que ele nunca viu</div>
+    <div class="big" style="font-size:13vh;color:var(--err)">0.81</div>
+    <h2>Dezenove pontos de diferença</h2>
+    <p class="lead dim">entre o número que eu mostrei<br>e o número que vale.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O nome disso é overfitting</div>
+    <h2>Ele decorou o simulado</h2>
+    <p class="lead">Um aluno recebe o simulado <strong>com o gabarito</strong>. Decora as 300 respostas. Tira 10.</p>
+    <p class="lead">Na prova, com questões novas, tira 8,1.</p>
+<pre class="term">profundidade da arvore: 13
+folhas (regras no fim): 46</pre>
+    <p class="dim">46 gavetinhas para 300 exemplos. Não generalizou — <strong>arquivou</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">E se deixar ele decorar menos?</div>
+    <h2><code>max_depth=5</code></h2>
+<pre class="good">treino: 0.8967
+teste : 0.83</pre>
+    <p class="lead">Ficou <strong>pior no treino</strong> e <strong>melhor no teste</strong>.</p>
+    <p class="lead">A distância caiu de <strong>19</strong> para <strong>7</strong> pontos.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.6vh;max-width:38ch">Modelo que acerta tudo no treino<br><br>quase sempre está <strong>mentindo</strong> para você.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">83% é bom? Bom comparado a quê?</div>
+    <h2>O modelo mais burro que existe</h2>
+<pre><span class="k">from</span> sklearn.dummy <span class="k">import</span> DummyClassifier
+
+burro = DummyClassifier(strategy=<span class="s">"most_frequent"</span>)</pre>
+<pre class="term">chutar sempre a classe maior: 0.51</pre>
+    <p>Olha o treino, vê qual resposta aparece mais, responde <strong>sempre aquela</strong>. Nem olha as features.</p>
+    <p class="lead dim">Isso se chama <strong>baseline</strong>: o chão do problema.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Mesmas 100 mensagens de teste</div>
+    <h2>A escada</h2>
+    <table>
+      <tr><th>Quem decide</th><th>Acurácia</th></tr>
+      <tr><td>chutar a classe maior</td><td class="mono">0.51</td></tr>
+      <tr><td>a regra ingênua da Aula 3</td><td class="mono">0.72</td></tr>
+      <tr><td>a regra de pontos, na mão</td><td class="mono">0.80</td></tr>
+      <tr><td>árvore de decisão <code>max_depth=5</code></td><td class="mono">0.83</td></tr>
+    </table>
+    <p class="lead" style="margin-top:.5vh">O modelo ganhou da regra na mão por <strong>três pontos</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Então para que serve?</div>
+    <h2>Para três coisas</h2>
+    <ul>
+      <li class="n1">Você <strong>não precisou inventar</strong> o limiar — e com 20 colunas é impossível</li>
+      <li class="n2">Quando o spam mudar, você <strong>retreina</strong>; não reescreve o <code>if</code></li>
+      <li class="n3">E agora você tem um <strong>número honesto</strong> para dizer se melhorou</li>
+    </ul>
+    <p class="lead" style="margin-top:1vh">"Acerta 83%" é opinião.<br>"Acerta 83% <strong>onde chutar acerta 51%</strong>" é informação.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="big">☕</div><h1>Pausa</h1><p class="lead dim">10 minutos.</p>
+    <p class="dim">Depois eu mostro uma acurácia de <strong>95%</strong> que não vale nada.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">💥 nº 2</span>
+    <h1>Vai ter ressaca<br>amanhã?</h1>
+    <p class="lead dim">A prefeitura te contratou para avisar um dia antes.<br>Ponta da Praia, 800 dias de mar.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Olhe o dado antes · o hábito da Aula 10</div>
+    <h2>Ressaca é raro</h2>
+<pre class="term">ressaca
+0    760
+1     40
+
+0    0.95
+1    0.05</pre>
+    <p class="lead">95% dos dias não tem ressaca. Isso tem nome: dado <strong>desbalanceado</strong>.</p>
+    <p class="dim">E quase todo problema que importa é assim — fraude, doença, defeito, acidente. O que você procura é <strong>raro</strong>.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">O modelo burro, no dado novo</div>
+    <div class="big" style="font-size:13vh;color:var(--ok)">0.95</div>
+    <p class="lead">Ele responde <strong>"não vai ter ressaca"</strong><br>para qualquer dia. Para sempre.</p>
+    <p class="lead dim">Não olhou vento. Não olhou pressão. Não olhou nada.</p>
+  </section>
+
+  <section class="slide center">
+    <h1>"Treinei um modelo<br>e deu 95%"</h1>
+    <p class="lead">Se chegar esse e-mail, a primeira pergunta<br><strong>não</strong> é "que modelo?".</p>
+    <p class="lead hl">É: quanto dá chutando?</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O modelo de verdade, no mesmo dado</div>
+    <h2>96% contra 95%</h2>
+<pre class="term">modelo burro     : 0.95
+modelo de verdade: 0.96</pre>
+    <p class="lead"><strong>Um ponto.</strong> Todo o trabalho para um ponto acima de chutar.</p>
+    <p class="dim">E se eu te mostrasse só o 96%, você ia me achar competente.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A matriz de confusão denuncia</div>
+    <h2>Acurácia é <em>um</em> número. E um número mistura tudo.</h2>
+    <div class="cols">
+      <div class="col"><h3>Modelo burro · 0.95</h3>
+<pre class="err" style="font-size:1.8vh">                   previu SEM  previu COM
+real: SEM ressaca         190           0
+real: COM ressaca          10           0</pre></div>
+      <div class="col"><h3>Modelo de verdade · 0.96</h3>
+<pre class="good" style="font-size:1.8vh">                   previu SEM  previu COM
+real: SEM ressaca         189           1
+real: COM ressaca           7           3</pre></div>
+    </div>
+    <p class="lead" style="margin-top:.5vh">Coluna da direita do burro: <strong>zero</strong>. Teve 10 ressacas e ele perdeu <strong>todas as 10</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O relatório que o sklearn dá de graça</div>
+    <h2>Olhem <em>uma</em> coluna: <code>recall</code></h2>
+<pre class="err" style="font-size:2.1vh">              precision    recall  f1-score   support
+
+           0       0.95      1.00      0.97       190
+           1       <span class="e">0.00      0.00</span>      0.00        10
+
+    accuracy                           <span class="s">0.95</span>       200</pre>
+    <p><code>recall</code> da linha <code>1</code>: <em>dos dias que tiveram ressaca, quantos eu peguei?</em></p>
+    <p class="lead">Zero. Na mesma tabela em que está escrito <code>accuracy 0.95</code>.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.2vh;max-width:44ch">Em dado desbalanceado, acurácia é quase inútil.<br><br>Quando o que você procura é <strong>raro</strong>, o número que importa é <strong>quantos dos raros você pegou</strong>.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">💥 nº 3</span>
+    <h1>Vazamento de dado</h1>
+    <p class="lead dim">O erro mais caro que existe em projeto de ML.<br>E o menos comentado em curso.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A coluna que eu pulei de propósito</div>
+    <h2><code>moderador_apagou</code></h2>
+    <p class="lead">Por que ela não seria uma feature legítima? É informação sobre a mensagem, está na tabela, é número.</p>
+<pre class="good">acuracia no treino: 1.0
+acuracia no TESTE : 1.0</pre>
+    <p class="lead hl">100% no <strong>teste</strong>. Não é overfitting.</p>
+    <p class="dim">Separamos, usamos <code>stratify</code>, medimos do lado de fora. Tudo certo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">De onde ele tirou a resposta</div>
+    <h2><code>feature_importances_</code></h2>
+<pre class="err" style="font-size:2.2vh">moderador_apagou          <span class="e">0.909</span>
+hora                      0.036
+tamanho                   0.032
+tem_link                  0.014
+remetente_desconhecido    0.007
+tem_promocao              0.002
+qtd_emoji                 0.000</pre>
+    <p class="lead">91% da decisão vem de <strong>uma</strong> coluna. As outras seis viraram enfeite.</p>
+  </section>
+
+  <section class="slide center">
+    <h1>Pense em <span class="hl">quando</span><br>a informação existe</h1>
+    <p class="lead">O moderador só apaga a mensagem <strong>depois</strong> de ler e concluir que é spam.</p>
+    <p class="lead hl">Então essa coluna é a resposta,<br>escrita com outro nome.</p>
+    <p class="dim">O modelo não aprendeu a reconhecer spam. Aprendeu a <strong>copiar o moderador</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Mensagem nova no grupo · o moderador ainda não viu</div>
+    <h2>E aí você tenta usar</h2>
+<pre class="err" style="font-size:2.2vh"><span class="e">ValueError</span>: The feature names should match
+those that were passed during fit.
+Feature names seen at fit time, yet now missing:
+- moderador_apagou</pre>
+    <p class="lead">Um modelo de <strong>100% de acurácia</strong> que não roda.</p>
+    <p class="dim">A versão honesta, sem essa coluna, dá <code>0.81</code> — e essa aí você usa amanhã.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">🔑 Uma pergunta por feature</div>
+    <h2>No momento de prever,<br>essa informação já existe?</h2>
+    <table>
+      <tr><th>Você quer prever</th><th>A feature traiçoeira</th></tr>
+      <tr><td>se o cliente vai cancelar</td><td class="mono">data_do_cancelamento</td></tr>
+      <tr><td>se o paciente tem a doença</td><td class="mono">remedio_prescrito</td></tr>
+      <tr><td>se o aluno vai desistir</td><td class="mono">nota_final</td></tr>
+      <tr><td>se a peça vai quebrar</td><td class="mono">custo_do_reparo</td></tr>
+    </table>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.4vh;max-width:40ch">Acurácia suspeita de boa é <strong>bug</strong>, não é talento.<br><br>Em dado real, 100% não existe.</p>
+  </section>
+
+  <section class="slide">
+    <span class="tag">🛠️ Mão na massa · 12 min</span>
+    <h2>De ponta a ponta, sozinho</h2>
+    <ul style="gap:1vh">
+      <li class="n1">ler <code>mensagens.csv</code></li>
+      <li class="n2">separar <code>X</code> (features <strong>honestas</strong>) e <code>y</code></li>
+      <li class="n3"><code>train_test_split</code> — <code>test_size=0.3</code>, <code>random_state=42</code></li>
+      <li class="n4">treinar, medir treino <em>e</em> teste, e medir o <code>DummyClassifier</code></li>
+    </ul>
+<pre class="term" style="font-size:2.1vh">meu modelo no teste:   0.??
+chutar a classe maior: 0.??
+distancia treino-teste: ?? pontos</pre>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">E depois mude o <code>random_state</code> para 99</div>
+    <h1>0.83 <span class="dim">ou</span> 0.90</h1>
+    <p class="lead">O <strong>mesmo</strong> modelo, no <strong>mesmo</strong> dado — dependendo de quais 100 mensagens caíram no teste.</p>
+    <p class="lead dim">Nenhum desses é "o" número. É uma medida, e toda medida tem erro.</p>
+    <p class="dim">Resolver isso bem chama <strong>validação cruzada</strong>. É a aula que vem.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O que isso destrava</div>
+    <h2>Vocês ganharam o direito de não acreditar num número</h2>
+    <ul>
+      <li class="yes">Ler uma métrica que alguém te mostra e saber <strong>qual pergunta fazer</strong></li>
+      <li class="yes">Perguntar <em>"isso é mais ou menos que chutar?"</em></li>
+      <li class="yes">Reconhecer <strong>vazamento de dado</strong>, o erro mais caro de projeto de empresa</li>
+      <li class="yes">Ter o vocabulário: feature, rótulo, treino, teste, baseline</li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">Aula 10 × Aula 15</div>
+    <p class="quote" style="font-size:3vh;max-width:46ch">Lá, dado sujo derrubou um modelo de 100% para 25% sem dar erro.<br><br>Hoje o dado estava limpo e o modelo mentiu de <strong>três jeitos</strong> — também sem dar erro.<br><br>Machine learning não quebra. Ele te dá um <strong>número errado com cara de certo</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1">Rodar a mão na massa e mandar no grupo <strong>as três frases</strong></li>
+      <li class="n2">Mexer no <code>max_depth</code>: <code>1</code>, <code>3</code>, <code>5</code>, <code>10</code>, <code>None</code> — <strong>onde começa a decoreba?</strong></li>
+      <li class="n3">Pegar <strong>mais de 3</strong> das 10 ressacas. Dica: <code>class_weight="balanced"</code>. Olhar a matriz, não a acurácia</li>
+      <li class="n4"><strong>Caça ao vazamento:</strong> 5 features de um problema do seu trabalho. Qual não passa na pergunta?</li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h1>Mas como ele decide<br>por dentro?</h1>
+    <p class="lead">A gente usou <code>DecisionTreeClassifier</code> a aula inteira como caixa preta.</p>
+    <p class="lead dim">Por que "árvore"? Onde ele achou o limiar que ninguém escreveu?<br>E por que eu escolheria outro modelo?</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0, bar = document.getElementById('bar'), num = document.getElementById('num');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){ e.preventDefault(); show(i+1); }
+    else if (k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){ e.preventDefault(); show(i-1); }
+    else if (k==='Home'){ show(0); } else if (k==='End'){ show(slides.length-1); }
+    else if (k==='t'||k==='T'){ var el=document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme')==='light'?'dark':'light'); }
+    else if (k==='f'||k==='F'){ if(!document.fullscreenElement){document.documentElement.requestFullscreen();}
+      else {document.exitFullscreen();} }
+  });
+  document.getElementById('next').addEventListener('click', function(){ show(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i-1); });
+  var x0=null;
+  document.addEventListener('touchstart', function(e){ x0=e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){ show(dx<0?i+1:i-1); } x0=null;
+  }, {passive:true});
+  var start=parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>

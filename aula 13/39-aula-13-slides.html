@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 13</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;-webkit-font-smoothing:antialiased}
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:5vh 7vw;gap:2.2vh}
+  .slide.active{display:flex;animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:6.5vh;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+  h2{font-size:4.6vh;line-height:1.12;font-weight:750;letter-spacing:-.015em}
+  h3{font-size:2.8vh;font-weight:700;color:var(--accent2)}
+  p{font-size:2.6vh;line-height:1.5;max-width:56ch}
+  p.lead{font-size:3.2vh;line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none;display:flex;flex-direction:column;gap:1.6vh}
+  li{font-size:2.6vh;line-height:1.4;padding-left:1.5em;position:relative;max-width:58ch}
+  li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+  li.yes::before{content:"✓";color:var(--ok)}
+  li.no::before{content:"✕";color:var(--err)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."} li.n4::before{content:"4."}
+
+  pre{background:var(--code-bg);border:1px solid var(--border);border-left:4px solid var(--accent);
+    border-radius:8px;padding:2.2vh 2.4vh;font-size:2.6vh;line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;overflow:auto;max-width:min(90vw,64ch)}
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  pre.term{border-left-color:var(--accent2)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)}
+  .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex;gap:2.5vw;flex-wrap:wrap;width:100%;align-items:flex-start}
+  .col{flex:1 1 0;min-width:250px;display:flex;flex-direction:column;gap:1.2vh}
+  .col pre{font-size:2.1vh;max-width:none;width:100%}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:2vh 2.2vh;display:flex;flex-direction:column;gap:.8vh}
+  .card .t{font-size:2.2vh;font-weight:700;color:var(--accent)}
+  .card .d{font-size:1.9vh;color:var(--dim);line-height:1.4}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.6vh;width:100%}
+  .big{font-size:9vh;font-weight:800;line-height:1;color:var(--accent)}
+  .quote{border-left:4px solid var(--accent);padding-left:2.4vh;font-size:3.4vh;line-height:1.35;
+    font-style:italic;max-width:48ch}
+  .center{align-items:center;text-align:center;justify-content:center}
+  .center ul{align-items:flex-start} .center pre{text-align:left}
+  .tag{display:inline-block;font-size:1.6vh;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--bg);background:var(--accent);padding:.4em .9em;border-radius:100px}
+  .tag.ia{background:var(--accent2);color:#fff}
+
+  table{border-collapse:collapse;font-size:2.3vh}
+  td,th{padding:1vh 1.8vh;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--accent);font-size:1.8vh;letter-spacing:.06em;text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--accent2);font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div><div id="title">Mestres do XGH · Aula 13</div><div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div><div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <section class="slide center">
+    <div class="kicker">Aula 13 · 7 de novembro</div>
+    <h1>Automação<br>de verdade</h1>
+    <p class="lead dim">Hoje o computador para de fazer o que vocês pedem<br>e passa a fazer o que vocês <strong>combinaram</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Sábado passado</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes"><code>requests.get</code> buscando dado de fora</li>
+      <li class="yes"><strong>Status 200 não quer dizer que deu certo</strong></li>
+      <li class="yes"><code>.json()</code> explodindo quando volta HTML</li>
+      <li class="yes">429 — API de graça tem limite</li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">A dívida</span>
+    <h1>"Só roda quando<br>eu aperto o play"</h1>
+    <p class="lead dim">E se eu quiser que rode sozinho?</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A diferença</div>
+    <h2>Programa × automação</h2>
+    <table>
+      <tr><th>O que vocês têm hoje</th><th>O que é automação</th></tr>
+      <tr><td>Você abre</td><td>Abre sozinho</td></tr>
+      <tr><td>Você aperta o play</td><td>Roda no horário</td></tr>
+      <tr><td>Você olha a resposta na tela</td><td>Deixa registro de que rodou</td></tr>
+      <tr><td>Se der erro, você vê</td><td>Se der erro, <strong>alguém precisa ficar sabendo</strong></td></tr>
+    </table>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Primeiro passo</div>
+    <h2>Notebook não é programa</h2>
+    <p class="lead">Notebook é bancada: você roda célula fora de ordem, deixa variável solta, conversa com o código.</p>
+    <p class="lead">Programa é outra coisa: <strong>um arquivo, de cima para baixo, do começo ao fim.</strong></p>
+    <p class="dim">Agendador não sabe apertar play em célula.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O arquivo</div>
+    <h2>Um <code>.py</code>, rodado pelo terminal</h2>
+<pre class="term">&gt; python organizador.py
+12 arquivos movidos</pre>
+    <p>Sem Jupyter, sem navegador, sem play. <strong>Só o Python e o arquivo.</strong></p>
+    <p class="dim">É assim que todo programa de verdade roda — e é assim que o agendador vai chamar.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Para não travar a pasta no código</div>
+    <h2>Receber argumento: <code>sys.argv</code></h2>
+<pre><span class="k">import</span> sys
+
+pasta = sys.argv[<span class="k">1</span>] <span class="k">if</span> <span class="k">len</span>(sys.argv) &gt; <span class="k">1</span> <span class="k">else</span> <span class="s">"."</span></pre>
+<pre class="term">&gt; python organizador.py "C:\Users\guilherme\Downloads"</pre>
+    <p class="dim">Mesmo script, pasta diferente. Sem editar uma linha.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O porteiro</div>
+    <h2><code>if __name__ == "__main__"</code></h2>
+<pre><span class="k">def</span> <span class="k">organizar</span>(pasta):
+    ...
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    organizar(sys.argv[<span class="k">1</span>])</pre>
+    <p>Traduzindo: <strong>"só execute isto se EU for o programa principal"</strong>.</p>
+    <p class="dim">Sem ele, importar seu arquivo em outro lugar dispara tudo sem querer.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">💥 nº 1 · o bloco mais importante do dia</span>
+    <h1>E se rodar<br>duas vezes?</h1>
+    <p class="lead dim">Não dá stack trace. Não aparece no log.<br>O programa <strong>funciona</strong> — e é por isso que dói.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Um script sem nada de errado</div>
+    <h2>Acrescenta as vendas do dia</h2>
+<pre style="font-size:2.3vh"><span class="k">with</span> <span class="k">open</span>(AQUI / <span class="s">"relatorio.csv"</span>, <span class="s">"a"</span>, newline=<span class="s">""</span>) <span class="k">as</span> f:
+    w = csv.writer(f)
+    <span class="k">for</span> v <span class="k">in</span> vendas:
+        w.writerow([v[<span class="s">"loja"</span>], v[<span class="s">"pecas"</span>]])</pre>
+    <p class="dim">Centro 41 · Shopping 58 · Online 33 — total verdadeiro: <strong>132</strong></p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Rodando duas vezes</div>
+    <h2>Nenhum erro</h2>
+<pre class="term">&gt; python relatorio.py
+relatorio.csv atualizado
+&gt; python relatorio.py
+relatorio.csv atualizado</pre>
+<pre style="font-size:2.2vh">loja,pecas
+Centro,41
+Shopping,58
+Online,33
+Centro,41
+Shopping,58
+Online,33</pre>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Medindo, com o pandas da Aula 10</div>
+    <h2>Porque número convence</h2>
+<pre class="err">linhas: 6
+total de pecas: 264</pre>
+    <p class="lead">O total verdadeiro é <strong>132</strong>.</p>
+    <p class="lead" style="color:var(--err)">O relatório diz <strong>264</strong>.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.6vh;max-width:34ch">Nenhum erro.<br>Nenhum aviso.<br>Nenhuma linha vermelha.<br><br>Só um número errado,<br>com cara de certo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">É a mesma lição da Aula 10</div>
+    <h2>Em outra roupa</h2>
+    <p class="lead">Lá: dado sujo derrubou um modelo de 100% para 25% <strong>sem dar erro</strong>.</p>
+    <p class="lead">Aqui: o programa não reclama e o resultado mente.</p>
+    <p class="lead hl">A diferença é que este aqui você causou — e você pode consertar.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">"Mas o meu só move arquivo"</div>
+    <h2>Vamos rodar duas vezes, então</h2>
+<pre class="term">&gt; python organizador.py
+12 arquivos movidos
+&gt; python organizador.py
+0 arquivos movidos</pre>
+<pre class="good">soltos na raiz: 0   |   arquivos no total: 12</pre>
+    <p class="dim">Parece seguro, né?</p>
+  </section>
+
+  <section class="slide center">
+    <h1>Não está seguro.<br><span class="hl">Está com sorte.</span></h1>
+    <p class="lead">Não duplicou porque na segunda vez não sobrou nada solto para mover.</p>
+    <p class="lead dim">Foi o acaso que salvou. Não o código.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Agora o cenário real</div>
+    <h2>Você baixou outra <code>nota-fiscal.pdf</code></h2>
+<pre>soltos na raiz: 1   |   arquivos no total: <span class="hl">13</span></pre>
+<pre class="term">&gt; python organizador.py
+1 arquivos movidos</pre>
+<pre class="err">soltos na raiz: 0   |   arquivos no total: <span class="e">12</span></pre>
+  </section>
+
+  <section class="slide center">
+    <h1 style="color:var(--err)">Treze entraram.<br>Doze saíram.</h1>
+    <p class="lead">Um arquivo seu deixou de existir.</p>
+    <p class="lead dim">Não foi para a lixeira. Não deu erro. Não tem log.<br>O <code>shutil.move</code> escreveu em cima e ficou quieto.</p>
+    <p class="dim">É o bug que você descobre três meses depois, quando precisa da nota antiga.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">Escrevam no caderno</span>
+    <h1>O que acontece<br>se isto rodar<br>duas vezes?</h1>
+    <p class="lead dim">Antes de agendar qualquer coisa, essa pergunta.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">E agendamento VAI rodar duas vezes</div>
+    <h2>Duas vezes é o normal, não a exceção</h2>
+    <ul>
+      <li>Você testa na mão</li>
+      <li>O agendador roda no horário</li>
+      <li>A máquina hiberna e ele roda ao acordar</li>
+      <li>Você clica em "Executar" só para conferir</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A palavra e as duas saídas</div>
+    <h2 class="hl">IDEMPOTENTE</h2>
+    <p class="lead">Rodar uma vez ou dez vezes dá o mesmo resultado.</p>
+    <ul>
+      <li class="n1"><strong>Verificar antes de agir</strong> — "já existe? já foi feito? então não faço"</li>
+      <li class="n2"><strong>Marcar o que já foi feito</strong> — uma lista, uma coluna de data, um nome de arquivo</li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <div class="big">🛗</div>
+    <h2>O botão do elevador</h2>
+    <p class="lead">Apertar dez vezes é igual a apertar uma. <strong>Idempotente.</strong></p>
+    <p class="lead dim">Interruptor de luz não é:<br>apertar duas vezes desliga.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O conserto — estratégia 1</div>
+    <h2>Pouco código, efeito grande</h2>
+<pre class="good" style="font-size:2.2vh">ja_tem = <span class="k">set</span>()
+<span class="k">if</span> ARQUIVO.exists():
+    <span class="k">with</span> <span class="k">open</span>(ARQUIVO, newline=<span class="s">""</span>) <span class="k">as</span> f:
+        <span class="k">for</span> linha <span class="k">in</span> csv.DictReader(f):
+            ja_tem.add(linha[<span class="s">"dia"</span>])
+
+<span class="k">if</span> DIA <span class="k">in</span> ja_tem:
+    <span class="k">print</span>(<span class="s">"já estava no relatório — não fiz nada"</span>)</pre>
+    <p class="dim">O <code>set</code> é da Aula 2. O <code>DictReader</code> é da Aula 8.<br><strong>Nada novo no conserto — novo é a pergunta que me fez escrever ele.</strong></p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Três rodadas</div>
+    <h2>Agora pode agendar</h2>
+<pre class="good" style="font-size:2.3vh">--- rodada 1 ---
+2026-11-07 acrescentado — 3 linhas
+--- rodada 2 ---
+2026-11-07 já estava no relatório — não fiz nada
+--- rodada 3 ---
+2026-11-07 já estava no relatório — não fiz nada</pre>
+<pre class="good">linhas: 3 | total de pecas: 132</pre>
+  </section>
+
+  <section class="slide center">
+    <div class="big">☕</div><h1>Pausa</h1><p class="lead dim">10 minutos.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 2</div>
+    <h2>Funciona no terminal, falha no agendador</h2>
+    <p class="lead">Você agenda. Na manhã seguinte: não fez nada — ou fez em algum lugar que você não encontra.</p>
+    <p class="lead">Você roda na mão de novo e <strong>funciona</strong>.</p>
+    <p class="dim">Isso enlouquece as pessoas.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">A causa tem nome</div>
+    <h1>Diretório<br>de trabalho</h1>
+    <p class="lead">Todo programa tem uma pasta onde ele "está".</p>
+    <p class="lead dim">No terminal é a pasta em que vocês estavam.<br>No agendador <strong>não é</strong> — e a escolha não é óbvia.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Mostrar, não contar</div>
+    <h2>Dois caminhos diferentes</h2>
+<pre><span class="k">print</span>(<span class="s">"diretorio de trabalho :"</span>, os.getcwd())
+<span class="k">print</span>(<span class="s">"onde o script mora    :"</span>, Path(__file__).parent)</pre>
+    <p>Rodando de outra pasta, os dois <strong>divergem</strong> — e o arquivo relativo some.</p>
+    <p class="dim">Erro de arquivo <strong>sem caminho na frente</strong>? Desconfie de caminho relativo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A solução é uma linha</div>
+    <h2>Ancorar no próprio arquivo</h2>
+<pre class="good">AQUI = Path(__file__).parent          <span class="c"># onde o SCRIPT mora</span>
+ARQUIVO = AQUI / <span class="s">"relatorio.csv"</span>      <span class="c"># não depende de onde chamou</span></pre>
+    <ul>
+      <li>arquivo <strong>do próprio projeto</strong> → <code>Path(__file__).parent / "..."</code></li>
+      <li>caminho que <strong>o usuário passou</strong> → <code>.expanduser().resolve()</code></li>
+      <li>caminho relativo em script agendado → <strong>nunca</strong></li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Duas notas que valem o minuto</div>
+    <h2><code>__file__</code> não existe em notebook</h2>
+    <p class="lead">No Colab e no Jupyter você ganha um <code>NameError</code>.</p>
+    <p class="lead dim">É mais uma coisa que separa <strong>bancada</strong> de <strong>produto</strong>.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">💥 nº 3</span>
+    <h1>Morrer calado</h1>
+    <p class="lead dim">O script falha às 3h da manhã<br>e ninguém fica sabendo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Por isso log, não print</div>
+    <h2><code>print</code> × <code>logging</code></h2>
+    <table>
+      <tr><th>print</th><th>logging</th></tr>
+      <tr><td>vai para a tela</td><td>vai para <strong>arquivo</strong></td></tr>
+      <tr><td>sem hora</td><td>com <strong>data e hora</strong></td></tr>
+      <tr><td>tudo igual</td><td>tem <strong>nível</strong>: INFO, WARNING, ERROR</td></tr>
+      <tr><td>você apaga depois</td><td><strong>fica</strong></td></tr>
+    </table>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A linha que sai no arquivo</div>
+    <h2>Quatro campos</h2>
+<pre class="term" style="font-size:2.2vh">22/10/2026 19:04:25 | INFO | movido: anotacoes.txt
+-> Outros/anotacoes.txt</pre>
+    <p>Data, hora, gravidade, mensagem.</p>
+    <p class="lead dim">É <strong>tudo</strong> que você precisa às oito da manhã de uma segunda,<br>quando o cliente diz que faltou arquivo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">E aqui a Aula 9 muda de status</div>
+    <h2><code>try/except</code> deixa de ser zelo</h2>
+<pre class="good" style="font-size:2.3vh"><span class="k">try</span>:
+    shutil.move(item, destino)
+    logging.info(f<span class="s">"movido: {item.name}"</span>)
+<span class="k">except</span> <span class="k">Exception</span> <span class="k">as</span> e:
+    logging.error(f<span class="s">"falhou em {item.name}: {type(e).__name__}"</span>)</pre>
+    <p class="lead">Sem <code>except</code>, o programa para no primeiro arquivo problemático — e os outros onze não são tratados.</p>
+    <p class="dim">É a diferença entre "falhou" e "falhou <strong>um de doze</strong>".</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O melhor comando da aula</div>
+    <h2><code>logging.exception</code></h2>
+<pre class="err" style="font-size:1.95vh">19:04:28 | ERROR | morreu antes de terminar: FileNotFoundError
+Traceback (most recent call last):
+  File "organizador.py", line 90, in &lt;module&gt;
+    movidos, iguais, erros = organizar(pasta, simulacao)
+  File "organizador.py", line 45, in organizar
+    for item in sorted(pasta.iterdir()):
+<span class="e">FileNotFoundError</span>: [Errno 2] No such file or directory</pre>
+    <p class="lead">O <strong>stack trace inteiro</strong> foi para dentro do arquivo.</p>
+    <p class="dim">Aquele mesmo da Aula 9 — agora esperando por você de manhã.<br>Uma palavra de diferença: <code>exception</code> no lugar de <code>error</code>.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.2vh;max-width:40ch"><code>logging.exception</code> dentro do <code>except</code> de nível mais alto do seu script.<br><br>Sempre. Não tem desculpa.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">🛠️ Mão na massa · 18 min</span>
+    <h1>O organizador<br>de verdade</h1>
+    <p class="lead dim">Quatro exigências: argumento, caminho ancorado,<br>log em arquivo e <strong>modo simulação</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A regra que torna ele idempotente</div>
+    <h2>Três situações, três respostas</h2>
+    <table>
+      <tr><th>No destino</th><th>O que fazer</th></tr>
+      <tr><td>não existe nada com esse nome</td><td>move, normal</td></tr>
+      <tr><td>existe e é do <strong>mesmo tamanho</strong></td><td>é o mesmo arquivo → <strong>não mexe</strong>, loga</td></tr>
+      <tr><td>existe e é de <strong>outro tamanho</strong></td><td>move com nome novo: <code>nota-1.pdf</code></td></tr>
+    </table>
+    <p class="dim">É a estratégia 1 — verificar antes de agir.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A prática profissional que ninguém ensina</div>
+    <h2>Modo simulação</h2>
+<pre class="term">&gt; python organizador.py ~/Downloads --simular
+[SIMULACAO] moveria nota-fiscal.pdf -> Documentos/
+[SIMULACAO] moveria foto.png        -> Imagens/
+[SIMULACAO] ja existe igual: extrato.pdf — nao faria nada</pre>
+    <p class="lead">Mostra o que <strong>faria</strong>, sem mexer em nada.</p>
+    <p class="dim">É o que te deixa testar em cima da sua pasta de verdade sem medo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Agendar — e isso é Aula 11 voltando</div>
+    <h2>Primeiro, o caminho do Python</h2>
+<pre><span class="k">import</span> sys
+<span class="k">print</span>(sys.executable)</pre>
+    <p class="lead">O agendador <strong>não tem o PATH de vocês</strong>.</p>
+    <p class="lead dim">Não dá para escrever só <code>python</code> lá dentro.<br>Tem que ser o caminho inteiro do <code>python.exe</code>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Agendador de Tarefas · Win+R → taskschd.msc</div>
+    <h2>Os três campos que importam</h2>
+    <table>
+      <tr><th>Campo</th><th>O que vai</th></tr>
+      <tr><td><strong>Programa/script</strong></td><td class="mono" style="font-size:1.9vh">C:\...\Python312\python.exe</td></tr>
+      <tr><td><strong>Adicionar argumentos</strong></td><td class="mono" style="font-size:1.9vh">organizador.py "C:\Users\...\Downloads"</td></tr>
+      <tr><td><strong>Iniciar em</strong></td><td class="mono" style="font-size:1.9vh">C:\Users\...\scripts\organizador</td></tr>
+    </table>
+    <p class="lead" style="margin-top:1vh">O terceiro é o que todo mundo deixa em branco —<br><strong>e é o do 💥 nº 2</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O que isso destrava</div>
+    <h2>Saiu do "um dia eu faço"</h2>
+    <ul>
+      <li class="yes"><strong>Relatório que chega pronto</strong> toda segunda, sem você abrir nada</li>
+      <li class="yes"><strong>Backup</strong> de uma pasta, no horário, com registro</li>
+      <li class="yes">A <strong>cotação da Aula 12</strong> anotada de hora em hora, virando histórico seu</li>
+      <li class="yes"><strong>Monitor de preço</strong> que avisa quando cai</li>
+      <li class="yes">E no Módulo 4: o mesmo esqueleto chamando <strong>IA</strong> nos seus arquivos</li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.4vh;max-width:38ch">Até ontem o computador de vocês fazia o que vocês <strong>pediam</strong>.<br><br>De hoje em diante ele faz o que vocês <strong>combinaram</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1"><strong>Terminar o organizador</strong>: <code>sys.argv</code>, <code>Path(__file__).parent</code>, <code>logging</code> em arquivo e <code>--simular</code></li>
+      <li class="n2"><strong>Rodar duas vezes e provar com número</strong> que nada duplicou e nada sumiu. Mande os dois números no grupo</li>
+      <li class="n3"><strong>Agendar de verdade</strong>, apontando para uma pasta de teste, e mandar o <code>organizador.log</code></li>
+      <li class="n4"><strong>Pensar</strong> na sua automação pessoal — ela vira o Projeto 2 sábado que vem</li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h1>O que foi que<br>eu mudei?</h1>
+    <p class="lead">Vocês vão mexer nesse script a semana toda. Consertar uma coisa, quebrar outra.</p>
+    <p class="lead dim">Aí vem o <code>organizador_v2.py</code>,<br>o <code>organizador_FINAL.py</code>,<br>o <code>organizador_FINAL_agora_vai.py</code>.</p>
+    <p class="lead">Sábado que vem a gente resolve isso de verdade — <strong>e de graça</strong>.</p>
+    <p class="kicker" style="margin-top:1.5vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0, bar = document.getElementById('bar'), num = document.getElementById('num');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){ e.preventDefault(); show(i+1); }
+    else if (k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){ e.preventDefault(); show(i-1); }
+    else if (k==='Home'){ show(0); } else if (k==='End'){ show(slides.length-1); }
+    else if (k==='t'||k==='T'){ var el=document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme')==='light'?'dark':'light'); }
+    else if (k==='f'||k==='F'){ if(!document.fullscreenElement){document.documentElement.requestFullscreen();}
+      else {document.exitFullscreen();} }
+  });
+  document.getElementById('next').addEventListener('click', function(){ show(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i-1); });
+  var x0=null;
+  document.addEventListener('touchstart', function(e){ x0=e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){ show(dx<0?i+1:i-1); } x0=null;
+  }, {passive:true});
+  var start=parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>
