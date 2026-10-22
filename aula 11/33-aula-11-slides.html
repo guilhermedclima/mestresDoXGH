@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestres do XGH — Aula 11</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --fg:#e6edf3; --dim:#8b949e;
+    --accent:#f0a500; --accent2:#58a6ff; --ok:#3fb950; --err:#ff7b72;
+    --border:#30363d; --code-bg:#161b22;
+  }
+  html[data-theme="light"]{
+    --bg:#fbfbf9; --bg2:#f0f0ec; --fg:#1a1a1a; --dim:#5c5c5c;
+    --accent:#b57500; --accent2:#0a58c2; --ok:#1a7f37; --err:#c2352b;
+    --border:#d8d8d0; --code-bg:#f4f4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;-webkit-font-smoothing:antialiased}
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:5vh 7vw;gap:2.2vh}
+  .slide.active{display:flex;animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:1.5vh;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:6.5vh;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+  h2{font-size:4.6vh;line-height:1.12;font-weight:750;letter-spacing:-.015em}
+  h3{font-size:2.8vh;font-weight:700;color:var(--accent2)}
+  p{font-size:2.6vh;line-height:1.5;max-width:56ch}
+  p.lead{font-size:3.2vh;line-height:1.4}
+  .dim{color:var(--dim)}
+  ul{list-style:none;display:flex;flex-direction:column;gap:1.6vh}
+  li{font-size:2.6vh;line-height:1.4;padding-left:1.5em;position:relative;max-width:58ch}
+  li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+  li.yes::before{content:"✓";color:var(--ok)}
+  li.no::before{content:"✕";color:var(--err)}
+  li.n1::before{content:"1."} li.n2::before{content:"2."} li.n3::before{content:"3."} li.n4::before{content:"4."}
+
+  pre{background:var(--code-bg);border:1px solid var(--border);border-left:4px solid var(--accent);
+    border-radius:8px;padding:2.2vh 2.4vh;font-size:2.6vh;line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;overflow:auto;max-width:min(90vw,64ch)}
+  pre.err{border-left-color:var(--err)}
+  pre.good{border-left-color:var(--ok)}
+  pre.term{border-left-color:var(--accent2)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .s{color:var(--ok)} .k{color:var(--accent2)} .c{color:var(--dim)} .e{color:var(--err)}
+  .hl{color:var(--accent);font-weight:700}
+
+  .cols{display:flex;gap:2.5vw;flex-wrap:wrap;width:100%;align-items:flex-start}
+  .col{flex:1 1 0;min-width:250px;display:flex;flex-direction:column;gap:1.2vh}
+  .col pre{font-size:2.1vh;max-width:none;width:100%}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:2vh 2.2vh;display:flex;flex-direction:column;gap:.8vh}
+  .card .t{font-size:2.2vh;font-weight:700;color:var(--accent)}
+  .card .d{font-size:1.9vh;color:var(--dim);line-height:1.4}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.6vh;width:100%}
+  .big{font-size:9vh;font-weight:800;line-height:1;color:var(--accent)}
+  .quote{border-left:4px solid var(--accent);padding-left:2.4vh;font-size:3.4vh;line-height:1.35;
+    font-style:italic;max-width:48ch}
+  .center{align-items:center;text-align:center;justify-content:center}
+  .center ul{align-items:flex-start} .center pre{text-align:left}
+  .tag{display:inline-block;font-size:1.6vh;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--bg);background:var(--accent);padding:.4em .9em;border-radius:100px}
+  .tag.ia{background:var(--accent2);color:#fff}
+
+  table{border-collapse:collapse;font-size:2.3vh}
+  td,th{padding:1vh 1.8vh;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--accent);font-size:1.8vh;letter-spacing:.06em;text-transform:uppercase}
+  td.mono{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--accent2);font-weight:700}
+
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s;z-index:10}
+  #num{position:fixed;bottom:2vh;right:2.5vw;font-size:1.7vh;color:var(--dim);z-index:10;font-variant-numeric:tabular-nums}
+  #hint{position:fixed;bottom:2vh;left:2.5vw;font-size:1.5vh;color:var(--dim);z-index:10}
+  #title{position:fixed;top:2.4vh;left:2.5vw;font-size:1.5vh;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;z-index:10}
+  .nav{position:fixed;top:0;bottom:0;width:12vw;z-index:9;cursor:pointer;opacity:0}
+  #prev{left:0} #next{right:0}
+</style>
+</head>
+<body>
+<div id="bar"></div><div id="title">Mestres do XGH · Aula 11</div><div id="num"></div>
+<div id="hint">← → navega · T tema · F tela cheia</div>
+<div class="nav" id="prev"></div><div class="nav" id="next"></div>
+
+<div id="deck">
+
+  <section class="slide center">
+    <div class="kicker">Aula 11 · 24 de outubro · abre o Módulo 3</div>
+    <h1>Bibliotecas e <code>pip</code></h1>
+    <p class="lead dim">Usar código que outras pessoas escreveram.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Aviso</div>
+    <h2>O formato muda a partir de hoje</h2>
+    <ul>
+      <li class="no">Acabou a Pílula de IA como bloco separado</li>
+      <li class="yes">Porque daqui em diante <strong>a aula inteira já é isso</strong></li>
+      <li class="yes">Os 15 minutos liberados vão para o <strong>teclado de vocês</strong></li>
+    </ul>
+    <p class="dim" style="margin-top:1vh">Metade do curso ficou para trás. A segunda metade é ferramenta — e ferramenta só entra na cabeça usando.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Sábado passado</div>
+    <h2>Onde a gente parou</h2>
+    <ul>
+      <li class="yes">Uma tabela de 200 linhas analisada em três linhas de código</li>
+      <li class="yes"><code>.describe()</code> e <code>.isnull().sum()</code> em toda tabela nova</li>
+      <li class="yes">Dado sujo derruba modelo de 100% para 25% — <strong>sem dar erro</strong></li>
+      <li class="yes">Menos dado limpo bate mais dado sujo</li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">A dívida</span>
+    <h1>Quem escreveu<br>o pandas?</h1>
+    <p class="lead dim">Ele não veio com o Python.<br>Alguém escreveu. Alguém colocou em algum lugar.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">pypi.org</div>
+    <h2>O PyPI é a prateleira</h2>
+    <div class="grid">
+      <div class="card"><span class="t">Centenas de milhares</span><span class="d">de bibliotecas publicadas</span></div>
+      <div class="card"><span class="t">Gente do mundo inteiro</span><span class="d">com nome e sobrenome na página</span></div>
+      <div class="card"><span class="t">De graça</span><span class="d">e a maioria com código aberto</span></div>
+    </div>
+    <p class="lead" style="margin-top:1vh">Quando vocês rodaram <code>pip install pandas</code>,<br>a máquina de vocês <strong>baixou daqui</strong>.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">A virada do Módulo 3</div>
+    <h1>Antes de escrever:<br><span class="hl">já existe?</span></h1>
+    <p class="lead">Até a Aula 10 vocês escreveram tudo.</p>
+    <p class="lead dim">Na prática quase sempre já existe — e programador experiente passa mais tempo<br><strong>procurando e lendo</strong> do que digitando.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.4vh;max-width:40ch">Isso não anula as dez aulas.<br><br>Quem não sabe o que a biblioteca faz por dentro trava no primeiro caso em que ela não faz exatamente o que precisa.</p>
+  </section>
+
+  <section class="slide center">
+    <h1>Quantas bibliotecas<br>vocês já usaram<br>neste curso?</h1>
+    <p class="lead dim">Pensem antes de eu mostrar.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A resposta</div>
+    <h2>Seis. Desde a Aula 4.</h2>
+<pre><span class="k">import</span> random       <span class="c"># Aula 4 — o jogo de adivinhação</span>
+<span class="k">import</span> datetime     <span class="c"># Aula 5</span>
+<span class="k">import</span> csv          <span class="c"># Aula 8 — DictReader</span>
+<span class="k">import</span> json         <span class="c"># Aula 7</span>
+<span class="k">import</span> os           <span class="c"># Aula 8 — caminhos</span>
+<span class="k">import</span> statistics   <span class="c"># média e mediana prontas</span></pre>
+    <p class="lead">E <strong>nenhuma</strong> vocês instalaram.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Biblioteca padrão</div>
+    <h2>Já vem junto com o Python</h2>
+    <p class="lead">Antes de instalar qualquer coisa, a primeira pergunta:</p>
+    <p class="lead hl">já não vem junto?</p>
+    <p>Data, hora, aleatório, JSON, CSV, arquivo, matemática, estatística básica — tudo já está aí.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">E não tem mágica nenhuma</div>
+    <h2>É um arquivo <code>.py</code></h2>
+<pre><span class="k">import</span> random
+<span class="k">print</span>(random.__file__)</pre>
+<pre class="term">/usr/lib/python3.11/random.py</pre>
+    <p>Texto, escrito em Python, igual ao que vocês escrevem. <strong>Dá para abrir e ler.</strong></p>
+    <p class="dim">No VS Code, <code>Ctrl</code> + clique no nome abre o arquivo.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Agora uma que não vem junto</div>
+    <h2>Sua planilha era <code>.csv</code> ou <code>.xlsx</code>?</h2>
+<pre><span class="k">import</span> pandas <span class="k">as</span> pd
+
+df = pd.read_excel(<span class="s">"vendas.xlsx"</span>)</pre>
+    <p class="lead dim">Rodem. Vai dar erro.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Mas que erro educado</div>
+    <h2>Ele diz o que falta <em>e</em> o que fazer</h2>
+<pre class="err"><span class="e">ImportError</span>: Missing optional dependency <span class="s">'openpyxl'</span>.
+Use pip or conda to install openpyxl.</pre>
+    <p class="lead">Nem todo erro é assim.</p>
+    <p class="lead hl">Quando é, obedeça.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Um comando</div>
+    <h2>E o pandas passou a ler Excel</h2>
+<pre class="term">pip install openpyxl</pre>
+<pre class="good">df = pd.read_excel(<span class="s">"vendas.xlsx"</span>)
+<span class="k">print</span>(df.groupby(<span class="s">"loja"</span>)[<span class="s">"faturamento"</span>].sum().round(<span class="k">2</span>))</pre>
+<pre class="term" style="font-size:2.3vh">loja
+Centro      163393.82
+Online      153940.47
+Shopping    185658.66</pre>
+    <p class="dim">O <code>groupby</code> é o mesmo de sábado passado. Só abriu um formato a mais.</p>
+  </section>
+
+  <section class="slide center">
+    <p class="quote" style="font-size:3.6vh;max-width:36ch">Biblioteca não te ensina a programar melhor.<br><br>Te dá <strong>alcance</strong>.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="big">☕</div><h1>Pausa</h1><p class="lead dim">10 minutos.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">💥 Quebrar de propósito</span>
+    <h1>Os quatro jeitos<br>de quebrar</h1>
+    <p class="lead dim"><code>pip install</code> funciona em cinco segundos.<br>O que toma tempo na vida real são estes quatro.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 1</div>
+    <h2>A biblioteca que não existe</h2>
+<pre class="err"><span class="k">import</span> tabelinha_magica
+
+<span class="e">ModuleNotFoundError</span>: No module named <span class="s">'tabelinha_magica'</span></pre>
+    <p>Quer dizer <strong>uma</strong> de três coisas, nesta ordem de probabilidade:</p>
+    <ul>
+      <li class="n1">você não instalou</li>
+      <li class="n2">escreveu o nome errado</li>
+      <li class="n3">instalou no lugar errado</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 2 · o que mais confunde</div>
+    <h2>Nome de instalação ≠ nome de import</h2>
+    <table>
+      <tr><th>Você instala</th><th>Você importa</th></tr>
+      <tr><td class="mono">pip install scikit-learn</td><td class="mono">import sklearn</td></tr>
+      <tr><td class="mono">pip install pillow</td><td class="mono">import PIL</td></tr>
+      <tr><td class="mono">pip install beautifulsoup4</td><td class="mono">import bs4</td></tr>
+      <tr><td class="mono">pip install opencv-python</td><td class="mono">import cv2</td></tr>
+      <tr><td class="mono">pip install pyyaml</td><td class="mono">import yaml</td></tr>
+    </table>
+  </section>
+
+  <section class="slide center">
+    <h1>Não tem regra.<br>Não dá para deduzir.</h1>
+    <p class="lead">São nomes históricos, escolhidos por pessoas diferentes em épocas diferentes.</p>
+    <p class="lead hl">E é por isso que você lê a documentação.</p>
+    <p class="dim">A primeira linha de qualquer página mostra o <code>pip install</code> e o <code>import</code>.<br>Decorar é impossível. Consultar leva cinco segundos.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 3 · o mais frustrante</div>
+    <h2>"Eu instalei e ele diz que não existe"</h2>
+    <p class="lead">Você instala, dá certo, roda o programa — e ele jura que a biblioteca não existe.</p>
+    <p class="lead hl">A causa: o pip instalou num Python e o programa rodou em outro.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Como conferir</div>
+    <h2>Compare os dois caminhos</h2>
+    <div class="cols">
+      <div class="col"><h3>No código</h3>
+<pre><span class="k">import</span> sys
+<span class="k">print</span>(sys.executable)</pre></div>
+      <div class="col"><h3>No terminal</h3>
+<pre class="term">pip -V</pre></div>
+    </div>
+    <p class="lead" style="margin-top:1vh">Não bateram? <strong>Achou o problema.</strong></p>
+    <p class="dim">VS Code: <code>Ctrl+Shift+P</code> → <code>Python: Select Interpreter</code>.<br>No Colab isso não acontece — só existe um Python lá.</p>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">🔑 Guardem esta</div>
+    <h2>A receita que resolve 90% dos casos</h2>
+<pre class="good" style="font-size:3.2vh">python -m pip install nome-da-biblioteca</pre>
+    <p class="lead">Garante que o pip é o do <strong>mesmo</strong> Python que vai rodar seu código.</p>
+    <p class="dim">Pegue o hábito e você não vê mais esse erro.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">💥 nº 4 · esse é de segurança</div>
+    <h2>E se eu digitar <code>pandsa</code>?</h2>
+    <p class="lead">Às vezes: erro de não encontrado.</p>
+    <p class="lead" style="color:var(--err)">Às vezes: <strong>instala</strong>.</p>
+    <p>Existe gente que registra pacote com nome quase igual ao de bibliotecas famosas, esperando o erro de digitação. Chama <strong>typosquatting</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Regra prática</div>
+    <h2><code>pip install</code> roda com as suas permissões</h2>
+    <ul>
+      <li>Use o link da <strong>documentação oficial ou do PyPI</strong> — não o primeiro resultado de busca</li>
+      <li>Olhe <strong>downloads</strong> e <strong>data da última versão</strong> na página</li>
+      <li>Desconfie de pacote novo, com poucos downloads e nome parecido com um famoso</li>
+    </ul>
+    <p class="dim">Não é paranoia. Já aconteceu com biblioteca grande.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O problema</div>
+    <h2>"Na minha máquina funciona"</h2>
+    <p class="lead">Você termina o Projeto 2, manda para um colega, e ele abre:</p>
+<pre class="err"><span class="e">ModuleNotFoundError</span></pre>
+    <p>Óbvio — as bibliotecas estão na <strong>sua</strong> máquina.</p>
+    <p class="lead dim">Como você diz a ele o que instalar?</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">A solução é um arquivo de texto</div>
+    <h2><code>requirements.txt</code></h2>
+    <div class="cols">
+      <div class="col"><h3>Você gera</h3>
+<pre class="term">pip freeze &gt; requirements.txt</pre>
+<pre style="font-size:2vh">openpyxl==3.1.5
+pandas==3.0.2
+qrcode==8.2
+rich==15.0.0</pre></div>
+      <div class="col"><h3>Ele instala</h3>
+<pre class="term">pip install -r requirements.txt</pre>
+        <p class="dim" style="font-size:2.1vh">Um comando, e ele fica com exatamente as mesmas bibliotecas que você.</p></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Por que a versão está ali</div>
+    <h2>Biblioteca muda</h2>
+<pre><span class="k">print</span>(pd.__version__)   <span class="c"># 3.0.2</span></pre>
+    <p>O que funcionava na versão 1 pode ter mudado de nome na versão 3.</p>
+    <p class="lead">Travar a versão é dizer: <strong>funciona com esta aqui</strong>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">⚠️ E quando não tem?</div>
+    <h2>Nem toda biblioteca expõe a versão</h2>
+<pre class="err"><span class="k">import</span> qrcode
+<span class="k">print</span>(qrcode.__version__)
+
+<span class="e">AttributeError</span>: module <span class="s">'qrcode'</span> has no
+attribute <span class="s">'__version__'</span></pre>
+    <p class="lead dim">Mas o Python sabe — porque o pip anotou.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">🔑 Funciona para qualquer pacote</div>
+    <h2>O jeito que nunca falha</h2>
+<pre class="good"><span class="k">from</span> importlib.metadata <span class="k">import</span> version
+
+<span class="k">print</span>(version(<span class="s">"qrcode"</span>))   <span class="c"># 8.2</span></pre>
+    <p>Tendo <code>__version__</code> ou não.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Só para vocês saberem que existe</div>
+    <h2>Ambiente virtual</h2>
+    <p class="lead">Dá a cada projeto a sua própria caixa de bibliotecas, sem misturar.</p>
+    <p class="lead">É a solução <strong>definitiva</strong> para o erro nº 3.</p>
+    <p class="dim">O nome é <code>venv</code>. Vai aparecer no Projeto 2 — hoje basta saber que existe.</p>
+  </section>
+
+  <section class="slide center">
+    <span class="tag">🛠️ Mão na massa · 14 min</span>
+    <h1>Use uma biblioteca<br>que eu não ensinei</h1>
+    <p class="lead">Eu dou a necessidade.<br><strong>Não digo como se faz.</strong></p>
+    <p class="lead dim">Procurem, instalem, leiam a documentação, façam funcionar.<br>É exatamente o que se faz num emprego.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Escolham uma</div>
+    <h2>Duas necessidades</h2>
+    <div class="cols">
+      <div class="col">
+        <div class="card"><span class="t">A — QR Code</span><span class="d">Gerar um QR Code com o link do repositório do curso e salvar num <code>.png</code></span></div>
+      </div>
+      <div class="col">
+        <div class="card"><span class="t">B — Tabela bonita</span><span class="d">Imprimir o faturamento por loja no terminal, com bordas e título</span></div>
+      </div>
+    </div>
+    <p class="dim" style="margin-top:1vh">Vou circular. Não vou entregar o nome do pacote — vou perguntar o que vocês digitaram na busca.</p>
+  </section>
+
+  <section class="slide center">
+    <h1>"Como você achou?"</h1>
+    <p class="lead">Quando alguém conseguir, essa é a pergunta.</p>
+    <p class="lead dim">A resposta costuma ser:<br><em>"procurei <code>python qr code</code> e abri o primeiro link que era documentação"</em></p>
+    <p class="dim">Não tem atalho de gente experiente. A diferença é desconfiar mais rápido do link errado e ler o exemplo antes de copiar.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">O que isso destrava</div>
+    <h2>Deixou de ser impossível. Virou uma tarde.</h2>
+    <ul>
+      <li class="yes">Ler e escrever <strong>Excel</strong>, <strong>PDF</strong>, <strong>Word</strong></li>
+      <li class="yes"><strong>Buscar dado da internet</strong> — sábado que vem</li>
+      <li class="yes">Mandar <strong>e-mail</strong>, mexer em <strong>imagem</strong>, falar com <strong>banco de dados</strong></li>
+      <li class="yes">E no Módulo 4: <strong>treinar modelo</strong> e <strong>chamar IA</strong></li>
+    </ul>
+    <p class="lead" style="margin-top:1vh">Vocês não ficaram melhores em Python hoje.<br>Ficaram com <span class="hl">alcance</span>.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Até sábado</div>
+    <h2>Tarefa da semana</h2>
+    <ul>
+      <li class="n1">Rodar o <code>diagnosticar()</code> da Aula 10 num <strong><code>.xlsx</code> de verdade</strong> seu</li>
+      <li class="n2">Gerar o <code>requirements.txt</code> do Projeto 1 e commitar junto</li>
+      <li class="n3"><strong>Achar uma biblioteca sozinho</strong> para uma necessidade sua. Manda no grupo: o que queria, <strong>o que digitou na busca</strong>, e o pacote que achou</li>
+      <li class="n4"><strong>Desafio:</strong> QR Code perguntando o link com <code>input()</code></li>
+    </ul>
+  </section>
+
+  <section class="slide center">
+    <div class="kicker">A pergunta que fica</div>
+    <h1>De onde vem<br>esse dado?</h1>
+    <p class="lead">Hoje instalamos uma que lê Excel do <strong>seu</strong> computador.<br>Semana que vem, uma que busca dado <strong>de fora</strong>.</p>
+    <p class="lead dim">Quem está do outro lado?<br>E por que deixariam eu pegar de graça?</p>
+    <p class="kicker" style="margin-top:2vh">Até sábado ✦ Mestres do XGH</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0, bar = document.getElementById('bar'), num = document.getElementById('num');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    bar.style.width = ((i) / (slides.length - 1) * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = i + 1; } catch(e){}
+  }
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){ e.preventDefault(); show(i+1); }
+    else if (k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){ e.preventDefault(); show(i-1); }
+    else if (k==='Home'){ show(0); } else if (k==='End'){ show(slides.length-1); }
+    else if (k==='t'||k==='T'){ var el=document.documentElement;
+      el.setAttribute('data-theme', el.getAttribute('data-theme')==='light'?'dark':'light'); }
+    else if (k==='f'||k==='F'){ if(!document.fullscreenElement){document.documentElement.requestFullscreen();}
+      else {document.exitFullscreen();} }
+  });
+  document.getElementById('next').addEventListener('click', function(){ show(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i-1); });
+  var x0=null;
+  document.addEventListener('touchstart', function(e){ x0=e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){ show(dx<0?i+1:i-1); } x0=null;
+  }, {passive:true});
+  var start=parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>

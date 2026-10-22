@@ -107,7 +107,7 @@ Sem prazo fechado — avança quando a turma acompanha. A numeração é referê
 
 | Aula | Tema | O aluno sai sabendo |
 |---|---|---|
-| 11 | Bibliotecas e `pip` | Usar código que outras pessoas escreveram |
+| 11 | Bibliotecas e `pip` ✅ | Usar código que outras pessoas escreveram |
 | 12 | APIs e `requests` | Buscar dados da internet dentro do programa |
 | 13 | Automação de verdade | Um script que faz sozinho algo chato que você faria na mão |
 | 14 | Git e GitHub + **Projeto 2** | Versionar e publicar o próprio código |
@@ -184,7 +184,9 @@ Ensinar é a forma mais eficiente de descobrir o que você só *acha* que entend
 - [x] Repositório no GitHub: `github.com/guilhermedclima/mestresDoXGH`
 - [ ] Grupo de mensagens ativo com o material da Aula 1
 - [ ] `duvidas-da-turma.md` iniciado
-- [ ] **Próxima a preparar: Aula 11 — bibliotecas e `pip`.** Muda o formato: sem pílula separada
+- [x] Aula 11 preparada (24/10) — bibliotecas e `pip`. **Primeira do formato novo: sem pílula, mais teclado**
+- [ ] **Próxima a preparar: Aula 12 — APIs e `requests`**
+- [ ] Ver `ARCO-aulas-11-20.md` — desenho do bloco 11 a 20, com a decisão da chave de API
 
 ### A corrente de dívidas montada
 
@@ -199,4 +201,5 @@ Cada aula abre pagando a pergunta deixada na anterior:
 | 8 | a perda do dado | "o programa morre no primeiro imprevisto" |
 | 9 | esse imprevisto — **e o `abc` da Aula 2** | "o CSV tem 5.000 linhas" |
 | 10 | as 5.000 linhas | "quem escreveu o pandas? como pego outras bibliotecas?" |
-| 11 | essa pergunta | *(a definir)* |
+| 11 | essa pergunta | "instalei uma que busca dado da internet — de onde vem esse dado?" |
+| 12 | de onde vem o dado | "só roda quando eu aperto o play" |
