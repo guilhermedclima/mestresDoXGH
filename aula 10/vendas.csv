@@ -1,0 +1,201 @@
+data,cidade,produto,quantidade,valor
+2026-04-25,Praia Grande,monitor,5,4076.1
+2026-04-28,Guaruja,teclado,2,276.79
+2026-02-01,Guaruja,headset,5,1150.49
+2026-04-06,Guaruja,headset,3,702.31
+2026-02-05,Santos,mouse,5,409.4
+2026-02-28,Santos,teclado,2,316.42
+2026-05-22,Guaruja,monitor,3,2949.2
+2026-04-10,Guaruja,mouse,2,174.93
+2026-02-09,Santos,monitor,4,3359.49
+2026-05-01,Santos,monitor,3,2871.4
+2026-03-16,Praia Grande,teclado,3,436.98
+2026-02-02,Praia Grande,mouse,4,318.24
+2026-01-18,Praia Grande,teclado,3,481.04
+2026-01-15,Sao Vicente,monitor,4,3656.53
+2026-02-04,Santos,mouse,5,436.41
+2026-05-09,Guaruja,headset,3,751.87
+2026-03-28,Sao Vicente,teclado,5,787.26
+2026-01-07,Praia Grande,teclado,4,653.5
+2026-02-11,Praia Grande,webcam,5,875.27
+2026-03-10,Praia Grande,webcam,1,173.25
+2026-03-16,Guaruja,teclado,2,313.27
+2026-05-13,Guaruja,teclado,1,164.6
+2026-03-15,Santos,mouse,5,387.51
+2026-06-02,Sao Vicente,mouse,1,87.66
+2026-06-19,Sao Vicente,monitor,2,1667.01
+2026-03-05,Guaruja,headset,1,233.44
+2026-05-28,Santos,headset,3,696.18
+2026-06-24,Guaruja,webcam,4,786.26
+2026-04-05,Praia Grande,headset,3,718.65
+2026-06-16,Santos,headset,5,1364.95
+2026-05-26,Praia Grande,mouse,1,79.87
+2026-06-02,Praia Grande,teclado,3,467.51
+2026-03-27,Praia Grande,monitor,5,4684.02
+2026-03-21,Sao Vicente,monitor,3,2946.72
+2026-03-11,Guaruja,webcam,1,179.07
+2026-06-22,Praia Grande,headset,3,797.5
+2026-06-27,Praia Grande,monitor,3,2777.79
+2026-06-15,Sao Vicente,monitor,2,1933.17
+2026-02-07,Praia Grande,monitor,5,4177.67
+2026-06-22,Praia Grande,headset,3,778.71
+2026-05-17,Sao Vicente,mouse,5,422.43
+2026-06-09,Sao Vicente,monitor,5,4547.89
+2026-05-21,Santos,mouse,2,162.77
+2026-01-16,Guaruja,mouse,2,164.19
+2026-01-11,Guaruja,mouse,1,86.27
+2026-04-15,Guaruja,headset,2,504.83
+2026-02-08,Praia Grande,headset,5,1142.99
+2026-03-28,Praia Grande,teclado,3,441.48
+2026-01-18,Sao Vicente,teclado,5,731.08
+2026-03-19,Praia Grande,teclado,3,454.07
+2026-05-21,Praia Grande,monitor,2,1770.88
+2026-04-19,Praia Grande,headset,2,465.68
+2026-03-27,Sao Vicente,mouse,2,163.48
+2026-05-18,Santos,headset,1,241.3
+2026-04-08,Guaruja,monitor,5,4388.26
+2026-04-13,Sao Vicente,monitor,4,3940.17
+2026-03-16,Guaruja,webcam,5,856.77
+2026-03-16,Praia Grande,headset,1,240.96
+2026-06-20,Praia Grande,mouse,4,289.52
+2026-02-27,Sao Vicente,mouse,3,217.92
+2026-03-08,Sao Vicente,teclado,4,603.91
+2026-02-24,Sao Vicente,teclado,2,299.41
+2026-04-17,Praia Grande,monitor,4,3677.79
+2026-05-23,Santos,teclado,2,288.04
+2026-01-15,Praia Grande,webcam,3,564.98
+2026-01-09,Praia Grande,monitor,5,4169.23
+2026-04-25,Sao Vicente,teclado,5,703.68
+2026-06-21,Sao Vicente,webcam,5,934.02
+2026-06-07,Sao Vicente,headset,4,978.37
+2026-01-23,Praia Grande,headset,1,240.18
+2026-04-10,Sao Vicente,webcam,3,556.03
+2026-04-11,Guaruja,mouse,4,332.49
+2026-01-03,Guaruja,headset,5,1260.35
+2026-06-01,Guaruja,monitor,1,952.52
+2026-06-16,Praia Grande,headset,1,274.92
+2026-06-27,Santos,teclado,1,141.58
+2026-04-05,Santos,mouse,3,249.88
+2026-02-03,Guaruja,webcam,2,353.8
+2026-04-24,Guaruja,teclado,5,691.23
+2026-01-24,Santos,monitor,1,912.8
+2026-01-11,Sao Vicente,webcam,2,324.72
+2026-03-02,Sao Vicente,headset,3,815.78
+2026-06-17,Guaruja,monitor,2,1824.71
+2026-03-03,Praia Grande,webcam,5,921.76
+2026-02-26,Guaruja,monitor,3,2709.18
+2026-02-05,Guaruja,monitor,4,3770.46
+2026-01-03,Santos,monitor,1,913.18
+2026-04-15,Santos,webcam,5,891.63
+2026-01-18,Sao Vicente,monitor,1,953.36
+2026-04-22,Sao Vicente,teclado,2,326.68
+2026-06-16,Guaruja,teclado,1,164.18
+2026-02-10,Guaruja,mouse,5,390.07
+2026-04-05,Praia Grande,webcam,3,571.97
+2026-03-17,Praia Grande,monitor,4,3932.1
+2026-02-13,Santos,webcam,5,848.68
+2026-02-07,Santos,teclado,1,135.99
+2026-03-01,Santos,headset,4,1032.25
+2026-05-14,Sao Vicente,headset,3,808.47
+2026-02-21,Praia Grande,headset,4,919.95
+2026-04-05,Guaruja,teclado,3,483.22
+2026-03-22,Praia Grande,teclado,3,478.66
+2026-03-25,Guaruja,teclado,4,647.56
+2026-06-15,Praia Grande,monitor,1,933.79
+2026-03-10,Sao Vicente,mouse,1,84.57
+2026-06-01,Sao Vicente,mouse,2,145.07
+2026-06-12,Guaruja,teclado,5,735.16
+2026-01-24,Praia Grande,mouse,4,311.13
+2026-02-02,Sao Vicente,mouse,2,149.62
+2026-04-25,Sao Vicente,monitor,1,893.14
+2026-05-19,Sao Vicente,mouse,1,72.53
+2026-04-03,Praia Grande,teclado,1,142.11
+2026-04-13,Sao Vicente,teclado,2,308.65
+2026-04-10,Santos,teclado,3,480.01
+2026-05-21,Santos,teclado,2,280.76
+2026-03-26,Sao Vicente,mouse,5,378.7
+2026-02-20,Santos,teclado,5,822.77
+2026-05-12,Santos,mouse,5,361.39
+2026-05-21,Sao Vicente,headset,5,1317.03
+2026-02-18,Guaruja,teclado,3,466.97
+2026-03-27,Santos,mouse,3,239.19
+2026-01-16,Sao Vicente,monitor,2,1666.73
+2026-06-08,Guaruja,teclado,4,656.13
+2026-01-23,Praia Grande,teclado,4,624.07
+2026-01-14,Guaruja,monitor,3,2908.19
+2026-03-21,Praia Grande,headset,5,1125.02
+2026-06-21,Guaruja,webcam,1,177.92
+2026-04-18,Santos,teclado,4,572.12
+2026-02-09,Guaruja,monitor,1,865.16
+2026-05-25,Sao Vicente,monitor,3,2448.38
+2026-02-27,Santos,teclado,1,136.52
+2026-05-01,Praia Grande,headset,3,817.38
+2026-02-11,Guaruja,webcam,4,666.05
+2026-02-24,Praia Grande,teclado,2,305.07
+2026-06-23,Santos,monitor,5,4595.33
+2026-01-11,Guaruja,headset,4,1058.96
+2026-04-06,Praia Grande,headset,2,496.1
+2026-04-20,Sao Vicente,teclado,2,301.96
+2026-04-22,Santos,teclado,2,318.86
+2026-05-08,Santos,mouse,1,72.53
+2026-02-09,Sao Vicente,monitor,4,3574.22
+2026-02-12,Guaruja,monitor,5,4514.24
+2026-04-12,Praia Grande,mouse,1,81.89
+2026-01-04,Guaruja,mouse,2,159.68
+2026-03-07,Guaruja,headset,1,262.68
+2026-05-03,Praia Grande,headset,4,1072.62
+2026-05-19,Guaruja,headset,1,230.18
+2026-01-20,Guaruja,headset,1,240.86
+2026-05-23,Praia Grande,webcam,4,720.17
+2026-06-18,Sao Vicente,headset,5,1355.97
+2026-03-19,Santos,webcam,2,381.51
+2026-01-01,Santos,webcam,2,344.46
+2026-06-14,Santos,monitor,5,4572.36
+2026-02-03,Praia Grande,teclado,3,488.63
+2026-06-26,Santos,teclado,3,485.74
+2026-01-08,Guaruja,headset,5,1147.98
+2026-01-22,Praia Grande,webcam,4,704.65
+2026-05-07,Sao Vicente,headset,2,525.08
+2026-06-18,Praia Grande,headset,3,691.34
+2026-03-26,Praia Grande,mouse,1,75.4
+2026-02-03,Praia Grande,webcam,1,194.3
+2026-05-19,Sao Vicente,mouse,2,164.99
+2026-05-20,Sao Vicente,headset,2,492.54
+2026-05-11,Guaruja,monitor,4,3442.14
+2026-03-19,Guaruja,headset,1,232.46
+2026-01-21,Guaruja,headset,2,482.61
+2026-02-27,Praia Grande,teclado,1,163.57
+2026-06-13,Santos,monitor,2,1926.12
+2026-01-07,Guaruja,webcam,4,768.95
+2026-03-20,Guaruja,teclado,1,145.07
+2026-02-23,Santos,webcam,4,754.02
+2026-02-07,Santos,monitor,1,956.56
+2026-06-24,Praia Grande,monitor,2,1785.12
+2026-04-13,Santos,mouse,4,348.25
+2026-02-22,Santos,teclado,5,819.31
+2026-06-03,Santos,headset,4,1092.54
+2026-04-12,Sao Vicente,monitor,1,831.03
+2026-04-21,Guaruja,monitor,4,3341.97
+2026-03-28,Santos,webcam,1,172.65
+2026-04-08,Santos,webcam,4,655.26
+2026-01-18,Praia Grande,teclado,2,286.26
+2026-04-28,Sao Vicente,headset,2,504.14
+2026-01-01,Guaruja,teclado,4,582.69
+2026-05-15,Guaruja,monitor,1,813.83
+2026-02-07,Sao Vicente,webcam,1,163.91
+2026-03-20,Sao Vicente,teclado,4,602.31
+2026-04-25,Sao Vicente,webcam,1,163.91
+2026-01-07,Sao Vicente,webcam,5,924.45
+2026-04-13,Santos,headset,4,1062.49
+2026-02-14,Santos,mouse,3,223.11
+2026-02-09,Santos,monitor,2,1761.69
+2026-06-21,Guaruja,headset,3,717.98
+2026-06-13,Santos,mouse,4,292.92
+2026-01-24,Santos,headset,2,469.65
+2026-04-08,Sao Vicente,monitor,5,4462.3
+2026-02-26,Santos,monitor,5,4077.99
+2026-06-12,Sao Vicente,teclado,3,416.82
+2026-06-18,Praia Grande,mouse,2,153.4
+2026-04-12,Santos,monitor,1,829.05
+2026-04-28,Praia Grande,monitor,4,3634.25
+2026-05-01,Guaruja,webcam,2,342.94

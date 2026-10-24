@@ -268,6 +268,25 @@ python -m pip install nome-da-biblioteca
 > "`python -m pip` garante que o pip usado é o do **mesmo** Python que vai rodar seu código. Pegue
 > o hábito: use sempre essa forma e você nunca mais vê esse erro."
 
+**E dentro do notebook a forma equivalente é `%pip`, com porcentagem.** Pare trinta segundos aqui,
+porque a turma vai usar notebook hoje:
+
+| | O que faz |
+|---|---|
+| `%pip install` | instala **no kernel que está rodando o notebook** |
+| `!pip install` | chama o pip do PATH — **pode ser de outro Python** |
+
+> "Com `!pip` acontece o clássico: aparece *Successfully installed*, vocês rodam o `import` e
+> recebem `ModuleNotFoundError` do mesmo jeito. Instalou — no Python errado."
+
+> "E depois de instalar, **reiniciem o kernel**. O Python procura a biblioteca uma vez por sessão;
+> se ela chegou depois, ele não vai olhar de novo sozinho."
+
+> **Aviso antes da mão na massa:** existe um pacote chamado `sklearn` no PyPI que **não é** a
+> biblioteca — é um pacote-fantasma que só serve para avisar que a pessoa digitou errado. Quem rodar
+> `pip install sklearn` recebe uma mensagem estranha e trava. O certo é `pip install scikit-learn`.
+
+
 **💥 nº 4 — o pacote com nome parecido (5 min). Esse é de segurança.**
 
 > "Se eu digitar `pip install pandsa`, com as letras trocadas, o que acontece?"
